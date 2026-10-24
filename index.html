@@ -335,24 +335,24 @@
         <!-- 2. Dojazdy -->
         <div class="card c-pad">
           <div class="card-title">
-            <span>🚗 Dojazdy: Dom (Kiełczów, Polna 74)</span>
+            <span>🚗 Dojazdy: Dom</span>
             <span id="commute-status" style="color: #38bdf8;">Na żywo</span>
           </div>
           
           <div class="commute-row" id="row-tsusho" tabindex="0">
             <div>
               <div class="commute-name">Tsusho Łęg 🗺️</div>
-              <div class="commute-sub">ul. Japońska 8 (przez WOW) • 19.2 km</div>
+              <div class="commute-sub">ul. Japońska • przez WOW</div>
             </div>
-            <div class="commute-time" id="time-tsusho">20 min</div>
+            <div class="commute-time" id="time-tsusho">-- min</div>
           </div>
 
           <div class="commute-row" id="row-koch" tabindex="0">
             <div>
               <div class="commute-name">Noir Handmade 🗺️</div>
-              <div class="commute-sub">Kochanowskiego 55a (przez Brucknera) • 11.4 km</div>
+              <div class="commute-sub">Kochanowskiego 55a • przez Brucknera</div>
             </div>
-            <div class="commute-time" id="time-koch">18 min</div>
+            <div class="commute-time" id="time-koch">-- min</div>
           </div>
         </div>
 
@@ -524,27 +524,32 @@
       renderMonthCalendar();
     }
 
-    // 4. Dojazdy: Prawdziwe trasy i precyzyjne czasy
+    // 4. Dojazdy: Twoje dokładne współrzędne
+    var DOM_LAT = 51.142935958072414;
+    var DOM_LNG = 17.190345703630012;
+
     var routesConfig = {
       tsusho: {
-        title: 'Trasa: Kiełczów (Polna 74) ➔ Tsusho Łęg (ul. Japońska 8)',
-        sub: 'Kiełczów (Polna 74) ➔ Wilczyce ➔ Wschodnia Obwodnica (WOW) ➔ Tsusho Łęg',
-        dist: '19.2 km',
-        baseMin: 20,
-        rushMin: 26,
+        title: 'Trasa: Dom ➔ Tsusho Łęg',
+        sub: 'Dom ➔ Wschodnia Obwodnica (WOW) ➔ Tsusho Łęg',
+        destLat: 51.03529091964734,
+        destLng: 17.290916081534256,
+        baseMin: 18,
+        rushMin: 24,
+        dist: '16.5 km',
         timeElId: 'time-tsusho',
-        // Lekka mapa OSM bez blokad iframe obejmująca całą trasę
-        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.1100%2C51.0200%2C17.3100%2C51.1700&layer=mapnik&marker=51.02685%2C17.27980'
+        mapUrl: 'https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=' + DOM_LAT + '%2C' + DOM_LNG + '%3B51.03529091964734%2C17.290916081534256#map=12/51.0900/17.2400'
       },
       koch: {
-        title: 'Trasa: Kiełczów (Polna 74) ➔ Noir Handmade (Kochanowskiego 55a)',
-        sub: 'Kiełczów (Polna 74) ➔ Kiełczowska ➔ Sobieskiego ➔ Brucknera ➔ Kochanowskiego 55a',
-        dist: '11.4 km',
-        baseMin: 18,
+        title: 'Trasa: Dom ➔ Noir Handmade',
+        sub: 'Dom ➔ Sobieskiego ➔ Brucknera ➔ Noir (Kochanowskiego 55a)',
+        destLat: 51.122948175552956,
+        destLng: 17.07826835270448,
+        baseMin: 17,
         rushMin: 25,
+        dist: '10.8 km',
         timeElId: 'time-koch',
-        // Lekka mapa OSM bez blokad iframe
-        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.0600%2C51.1100%2C17.1700%2C51.1680&layer=mapnik&marker=51.11982%2C17.07545'
+        mapUrl: 'https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=' + DOM_LAT + '%2C' + DOM_LNG + '%3B51.122948175552956%2C17.07826835270448#map=13/51.1330/17.1340'
       }
     };
 
@@ -557,12 +562,11 @@
         var mins = d.getMinutes();
         var totalMinOfDay = hrs * 60 + mins;
 
-        // Domyślny czas płynnej jazdy
         var calculatedTime = cfg.baseMin;
 
-        // Szczyt poranny tylko w dni robocze Pn-Pt (5:00 - 9:00)
+        // Szczyt poranny Pn-Pt (5:00 - 9:00)
         if (day >= 1 && day <= 5 && hrs >= 5 && hrs < 9) {
-          if (totalMinOfDay >= 420 && totalMinOfDay <= 510) { // 7:00 - 8:30 (największe korki)
+          if (totalMinOfDay >= 420 && totalMinOfDay <= 510) { // 7:00 - 8:30 (szczyt)
             calculatedTime = cfg.rushMin;
           } else if (totalMinOfDay >= 360 && totalMinOfDay < 420) { // 6:00 - 7:00
             calculatedTime = cfg.rushMin - 2;
@@ -591,13 +595,12 @@
       var cfg = routesConfig[key];
       calculateRealCommuteTime(key);
       document.getElementById('route-modal-title').textContent = cfg.title;
-      document.getElementById('route-name-badge').textContent = 'Szacowany czas: ' + (cfg.lastCalculated || (cfg.baseMin + ' min (' + cfg.dist + ')'));
+      document.getElementById('route-name-badge').textContent = 'Szacowany czas: ' + (cfg.lastCalculated || (cfg.baseMin + ' min'));
       document.getElementById('route-sub-badge').textContent = cfg.sub;
       document.getElementById('route-iframe').src = cfg.mapUrl;
       document.getElementById('route-modal').classList.add('open');
     }
 
-    // Bezpośrednie przypisanie zdarzeń click i keydown pod pilot TV
     document.getElementById('row-tsusho').addEventListener('click', function() { handleCommuteClick('tsusho'); });
     document.getElementById('row-tsusho').addEventListener('keydown', function(e) { if (e.key === 'Enter') handleCommuteClick('tsusho'); });
 
@@ -618,7 +621,6 @@
       if (e.target.id === modalId) closeModal(modalId);
     }
 
-    // Start od razu przy wczytaniu
     updateAllCommutes();
     setInterval(updateAllCommutes, 60 * 1000);
 
