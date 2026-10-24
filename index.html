@@ -39,7 +39,7 @@
     }
     .clock-box { display: flex; align-items: baseline; gap: 12px; }
     .clock-box h1 { font-size: 2.6rem; font-weight: 800; line-height: 1; }
-    .clock-box p { font-size: 0.95rem; color: #94a3b8; }
+    .clock-box p { font-size: 0.95rem; color: #94a3b8; text-transform: capitalize; }
 
     .weather-widget {
       padding: 6px 14px;
@@ -156,18 +156,124 @@
     .r-meta h4 { font-size: 0.74rem; font-weight: 700; }
     .r-meta p { font-size: 0.6rem; color: #94a3b8; }
 
-    .tv-btn {
+    /* Nowy Przycisk Kalendarza Miesięcznego */
+    .cal-btn {
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
       color: #38bdf8;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 6px;
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
+    .cal-btn:hover { background: rgba(56, 189, 248, 0.28); }
 
     .tag { font-size: 0.65rem; color: #94a3b8; }
+
+    /* Modal - Pełny Kalendarz Miesięczny */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-content {
+      width: 720px;
+      max-width: 90vw;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 18px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .modal-header h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      color: #f8fafc;
+    }
+    .modal-nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f8fafc;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .nav-btn:hover { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+    .month-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 6px;
+    }
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .m-day {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      height: 52px;
+      padding: 4px 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .m-day.other-month {
+      opacity: 0.25;
+    }
+    .m-day.current-today {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      font-weight: 800;
+    }
+    .close-btn {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
   </style>
 </head>
 <body>
@@ -176,8 +282,8 @@
     <!-- Pasek górny -->
     <div class="top-bar">
       <div class="clock-box">
-        <h1 id="clock">13:00</h1>
-        <p id="date">Sobota, 24 października</p>
+        <h1 id="clock">--:--</h1>
+        <p id="date">Ładowanie daty...</p>
       </div>
 
       <div class="weather-widget card">
@@ -244,15 +350,7 @@
           <span>📅 Rozpiska Tygodnia</span>
           <span style="color: #38bdf8;">Bieżący tydzień</span>
         </div>
-        <div class="week-grid">
-          <div class="day-box"><div class="day-hdr"><span>Pn</span><span>19</span></div><div class="day-txt">Brak planów</div></div>
-          <div class="day-box"><div class="day-hdr"><span>Wt</span><span>20</span></div><div class="day-txt">Brak planów</div></div>
-          <div class="day-box"><div class="day-hdr"><span>Śr</span><span>21</span></div><div class="day-txt">Brak planów</div></div>
-          <div class="day-box"><div class="day-hdr"><span>Czw</span><span>22</span></div><div class="day-txt">Brak planów</div></div>
-          <div class="day-box"><div class="day-hdr"><span>Pt</span><span>23</span></div><div class="day-txt">Brak planów</div></div>
-          <div class="day-box today"><div class="day-hdr"><span>Sob</span><span>24</span></div><div class="day-txt">Brak planów</div></div>
-          <div class="day-box"><div class="day-hdr"><span>Ndz</span><span>25</span></div><div class="day-txt">Brak planów</div></div>
-        </div>
+        <div class="week-grid" id="week-grid"></div>
       </div>
     </div>
 
@@ -268,8 +366,9 @@
           <audio id="audio" src="https://stream2.prw.pl:8001/radioram" preload="none"></audio>
         </div>
 
-        <button class="tv-btn" onclick="launchTelevizo()">
-          📺 Uruchom Televizo
+        <!-- Przycisk Pełnego Miesiąca -->
+        <button class="cal-btn" onclick="openMonthModal()">
+          📅 Pokaż cały miesiąc
         </button>
       </div>
 
@@ -277,19 +376,133 @@
     </div>
   </div>
 
+  <!-- Okno modalne: Pełny Kalendarz Miesięczny -->
+  <div class="modal-overlay" id="month-modal" onclick="closeModalOnBg(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-month-title">Październik 2026</h3>
+        <div class="modal-nav">
+          <button class="nav-btn" onclick="changeMonth(-1)">◀ Poprzedni</button>
+          <button class="nav-btn" onclick="resetToCurrentMonth()">Dziś</button>
+          <button class="nav-btn" onclick="changeMonth(1)">Następny ▶</button>
+          <button class="close-btn" onclick="closeMonthModal()">✕ Zamknij</button>
+        </div>
+      </div>
+
+      <div class="month-weekdays">
+        <div>Pn</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
+      </div>
+
+      <div class="month-grid" id="month-grid"></div>
+    </div>
+  </div>
+
   <script>
-    // Aktualizacja zegara
+    // 1. Zegar i Data
     function updateClock() {
       const now = new Date();
       const hrs = String(now.getHours()).padStart(2, '0');
       const mins = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('clock').textContent = hrs + ':' + mins;
-      document.getElementById('date').textContent = now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('date').textContent = now.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Radio RAM
+    // 2. Kalendarz Tygodniowy (na pulpicie)
+    const daysNames = ['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
+    const now = new Date();
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    const weekGrid = document.getElementById('week-grid');
+    weekGrid.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - dayOfWeek + i);
+      const isToday = i === dayOfWeek;
+      const col = document.createElement('div');
+      col.className = 'day-box' + (isToday ? ' today' : '');
+      col.innerHTML = '<div class="day-hdr"><span>' + daysNames[i] + '</span><span>' + d.getDate() + '</span></div><div class="day-txt">Brak planów</div>';
+      weekGrid.appendChild(col);
+    }
+
+    // 3. Kalendarz Pełnego Miesiąca (Interaktywny)
+    let viewDate = new Date();
+
+    function renderMonthCalendar() {
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+      
+      const monthNames = [
+        'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+        'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+      ];
+      document.getElementById('modal-month-title').textContent = monthNames[month] + ' ' + year;
+
+      const grid = document.getElementById('month-grid');
+      grid.innerHTML = '';
+
+      // Pierwszy dzień miesiąca i ile dni ma miesiąc
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const totalDays = lastDay.getDate();
+
+      // Dzień tygodnia pierwszego dnia (0 = Ndz, 1 = Pn...) -> konwersja na Pn = 0
+      const startDayIndex = (firstDay.getDay() + 6) % 7;
+
+      // Dni z poprzedniego miesiąca (padding)
+      const prevLastDay = new Date(year, month, 0).getDate();
+      for (let i = startDayIndex - 1; i >= 0; i--) {
+        const cell = document.createElement('div');
+        cell.className = 'm-day other-month';
+        cell.innerHTML = '<span>' + (prevLastDay - i) + '</span>';
+        grid.appendChild(cell);
+      }
+
+      // Dni bieżącego miesiąca
+      const today = new Date();
+      for (let day = 1; day <= totalDays; day++) {
+        const cell = document.createElement('div');
+        const isCurrentDay = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+        cell.className = 'm-day' + (isCurrentDay ? ' current-today' : '');
+        cell.innerHTML = '<span>' + day + '</span>';
+        grid.appendChild(cell);
+      }
+
+      // Dni z następnego miesiąca (do pełnych tygodni)
+      const totalCells = startDayIndex + totalDays;
+      const remainingCells = (7 - (totalCells % 7)) % 7;
+      for (let nextDay = 1; nextDay <= remainingCells; nextDay++) {
+        const cell = document.createElement('div');
+        cell.className = 'm-day other-month';
+        cell.innerHTML = '<span>' + nextDay + '</span>';
+        grid.appendChild(cell);
+      }
+    }
+
+    function openMonthModal() {
+      document.getElementById('month-modal').classList.add('open');
+      renderMonthCalendar();
+    }
+
+    function closeMonthModal() {
+      document.getElementById('month-modal').classList.remove('open');
+    }
+
+    function closeModalOnBg(e) {
+      if (e.target.id === 'month-modal') closeMonthModal();
+    }
+
+    function changeMonth(delta) {
+      viewDate.setMonth(viewDate.getMonth() + delta);
+      renderMonthCalendar();
+    }
+
+    function resetToCurrentMonth() {
+      viewDate = new Date();
+      renderMonthCalendar();
+    }
+
+    // 4. Radio RAM
     const aud = document.getElementById('audio');
     const rBtn = document.getElementById('radio-btn');
     const rSt = document.getElementById('r-status');
@@ -307,16 +520,6 @@
         aud.pause();
         rBtn.textContent = '▶';
         rSt.textContent = 'Wstrzymano';
-      }
-    }
-
-    // Televizo
-    function launchTelevizo() {
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      if (isAndroid) {
-        window.location.href = 'intent:#Intent;package=com.niklabs.pp;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end';
-      } else {
-        alert('Ten przycisk uruchamia Televizo na Twoim telewizorze Sony.');
       }
     }
   </script>
