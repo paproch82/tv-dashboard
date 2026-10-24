@@ -70,11 +70,19 @@
       gap: 8px;
     }
 
-    .grid-3 {
+    /* Domyślny układ 3-kolumnowy w szczycie */
+    .grid-middle {
       display: grid;
       grid-template-columns: 1.1fr 1.25fr 0.65fr;
       gap: 8px;
+      transition: all 0.3s ease;
     }
+
+    /* Układ 2-kolumnowy poza szczytem */
+    .grid-middle.commute-hidden {
+      grid-template-columns: 1.3fr 1fr;
+    }
+
     .c-pad { padding: 8px 12px; }
     .card-title {
       font-size: 0.65rem;
@@ -169,7 +177,7 @@
       align-items: center;
       padding: 6px 14px;
     }
-    .b-left { display: flex; align-items: center; gap: 14px; }
+    .b-left { display: flex; align-items: center; gap: 12px; }
     .radio-unit { display: flex; align-items: center; gap: 8px; }
     .r-btn {
       width: 28px; height: 28px; border-radius: 50%; border: none;
@@ -179,7 +187,7 @@
     .r-meta h4 { font-size: 0.74rem; font-weight: 700; }
     .r-meta p { font-size: 0.6rem; color: #94a3b8; }
 
-    .cal-btn {
+    .bottom-pill-btn {
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
       color: #38bdf8;
@@ -188,8 +196,13 @@
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
     }
-    .cal-btn:hover { background: rgba(56, 189, 248, 0.28); }
+    .bottom-pill-btn:hover, .bottom-pill-btn:focus {
+      background: rgba(56, 189, 248, 0.28);
+      border-color: rgba(56, 189, 248, 0.6);
+    }
 
     .tag { font-size: 0.65rem; color: #94a3b8; }
 
@@ -303,7 +316,7 @@
     .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
     .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
 
-    /* Modal Prognozy Pogody (4 Dni) */
+    /* Modal Prognozy Pogody */
     .forecast-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -356,7 +369,7 @@
       margin-top: 4px;
     }
 
-    /* Przekrój Godzinowy Doby (8 bloków po 3h) */
+    /* Przekrój Godzinowy */
     .hourly-grid {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
@@ -403,7 +416,7 @@
 
     <!-- Środek -->
     <div class="middle-area">
-      <div class="grid-3">
+      <div class="grid-middle" id="middle-grid">
         <!-- 1. Indeks Biegowy -->
         <div class="card c-pad">
           <div class="card-title">
@@ -419,8 +432,8 @@
           </div>
         </div>
 
-        <!-- 2. Dojazdy TomTom Live -->
-        <div class="card c-pad">
+        <!-- 2. Dojazdy TomTom Live (Widoczny w Pn-Pt 5:00-9:00) -->
+        <div class="card c-pad" id="main-commute-card">
           <div class="card-title">
             <span>🚗 Dojazdy: Dom</span>
             <span id="commute-status" style="color: #38bdf8;">Ładowanie TomTom...</span>
@@ -480,7 +493,12 @@
           <audio id="audio" src="https://stream2.prw.pl:8001/radioram" preload="none"></audio>
         </div>
 
-        <button class="cal-btn" onclick="openMonthModal()">
+        <!-- Przycisk zminimalizowanych dojazdów (widoczny poza szczytem) -->
+        <button class="bottom-pill-btn" id="commute-mini-btn" style="display: none;" onclick="openMiniCommuteModal()">
+          🚗 Dojazdy (TomTom)
+        </button>
+
+        <button class="bottom-pill-btn" onclick="openMonthModal()">
           📅 Pokaż cały miesiąc
         </button>
       </div>
@@ -529,7 +547,7 @@
     </div>
   </div>
 
-  <!-- Modal 3: Interaktywna Pogoda (Dni ➔ Przekrój Godzinowy) -->
+  <!-- Modal 3: Pogoda (Dni ➔ Przekrój Godzinowy) -->
   <div class="modal-overlay" id="weather-modal" onclick="closeModalOnBg(event, 'weather-modal')">
     <div class="modal-content">
       <div class="modal-header">
@@ -540,15 +558,46 @@
         </div>
       </div>
 
-      <!-- Widok 1: 4 Dni -->
       <div class="forecast-grid" id="forecast-days-container">
         <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">
           Ładowanie prognozy pogody...
         </div>
       </div>
 
-      <!-- Widok 2: Godzinowy przekrój doby -->
       <div class="hourly-grid" id="forecast-hourly-container" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Zminimalizowane Dojazdy (poza godzinami szczytu) -->
+  <div class="modal-overlay" id="mini-commute-modal" onclick="closeModalOnBg(event, 'mini-commute-modal')">
+    <div class="modal-content" style="width: 520px;">
+      <div class="modal-header">
+        <h3>🚗 Dojazdy z domu (TomTom Live)</h3>
+        <button class="close-btn" onclick="closeModal('mini-commute-modal')">✕ Zamknij</button>
+      </div>
+      <div style="margin-top: 10px;">
+        <div class="commute-row" tabindex="0" onclick="closeModal('mini-commute-modal'); handleCommuteClick('tsusho');">
+          <div>
+            <div class="commute-name">Tsusho Łęg 🗺️</div>
+            <div class="commute-sub" id="mini-sub-tsusho">ul. Japońska • przez WOW</div>
+          </div>
+          <div class="commute-right">
+            <div class="commute-time" id="mini-time-tsusho">-- min</div>
+            <div class="commute-delay" id="mini-delay-tsusho"></div>
+          </div>
+        </div>
+
+        <div class="commute-row" tabindex="0" onclick="closeModal('mini-commute-modal'); handleCommuteClick('koch');">
+          <div>
+            <div class="commute-name">Noir Handmade 🗺️</div>
+            <div class="commute-sub" id="mini-sub-koch">Kochanowskiego 55a • przez Brucknera</div>
+          </div>
+          <div class="commute-right">
+            <div class="commute-time" id="mini-time-koch">-- min</div>
+            <div class="commute-delay" id="mini-delay-koch"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -560,6 +609,45 @@
     var NOIR_COORDS = [51.122948175552956, 17.07826835270448];
     var TOMTOM_KEY = 'KX5qRepXbYZUHX9vuKYyWzQxojJHmJNM';
     // ------------------------------------------------------------------
+
+    // Logika szczytu porannego: Pn-Pt 5:00 - 9:00
+    function isMorningRushHour() {
+      var d = new Date();
+      var day = d.getDay(); // 1-5 = Pn-Pt
+      var hrs = d.getHours();
+      return (day >= 1 && day <= 5 && hrs >= 5 && hrs < 9);
+    }
+
+    function applyCommuteLayout() {
+      var isRush = isMorningRushHour();
+      var mainCard = document.getElementById('main-commute-card');
+      var grid = document.getElementById('middle-grid');
+      var miniBtn = document.getElementById('commute-mini-btn');
+
+      if (isRush) {
+        // Pn-Pt 5-9: pełny kafel na środku
+        mainCard.style.display = 'block';
+        grid.classList.remove('commute-hidden');
+        miniBtn.style.display = 'none';
+      } else {
+        // Poza szczytem: chowamy duży kafel, pokazujemy mały przycisk na dole
+        mainCard.style.display = 'none';
+        grid.classList.add('commute-hidden');
+        miniBtn.style.display = 'inline-block';
+      }
+    }
+
+    function openMiniCommuteModal() {
+      document.getElementById('mini-commute-modal').classList.add('open');
+      // Odśwież widok w oknie podręcznym
+      document.getElementById('mini-time-tsusho').textContent = document.getElementById('time-tsusho').textContent;
+      document.getElementById('mini-delay-tsusho').textContent = document.getElementById('delay-tsusho').textContent;
+      document.getElementById('mini-sub-tsusho').textContent = document.getElementById('sub-tsusho').textContent;
+
+      document.getElementById('mini-time-koch').textContent = document.getElementById('time-koch').textContent;
+      document.getElementById('mini-delay-koch').textContent = document.getElementById('delay-koch').textContent;
+      document.getElementById('mini-sub-koch').textContent = document.getElementById('sub-koch').textContent;
+    }
 
     // 1. Zegar i Data
     function updateClock() {
@@ -574,7 +662,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Pogoda Open-Meteo (Aktualna + Dzienna + Godzinowa)
+    // 2. Pogoda Open-Meteo
     var forecastDailyData = null;
     var forecastHourlyData = null;
 
@@ -617,7 +705,6 @@
             document.getElementById('w-humidity').textContent = humidity + '%';
             document.getElementById('w-precip').textContent = precip.toFixed(1) + ' mm';
 
-            // Indeks biegowy
             var verdictEl = document.getElementById('run-verdict');
             var descEl = document.getElementById('run-desc');
 
@@ -658,7 +745,6 @@
         .catch(function() {});
     }
 
-    // Widok 1: Dni
     function renderDaysView() {
       var container = document.getElementById('forecast-days-container');
       if (!forecastDailyData) {
@@ -710,7 +796,6 @@
       }
     }
 
-    // Widok 2: Przekrój Dobowy (Godziny)
     function showHourlyView(dayIndex, dayTitle, dayDate) {
       if (!forecastHourlyData) return;
 
@@ -723,8 +808,6 @@
       hourlyContainer.innerHTML = '';
 
       var dayStartHourIndex = dayIndex * 24;
-
-      // Pokazujemy 8 bloków co 3 godziny: 0:00, 3:00, 6:00, 9:00, 12:00, 15:00, 18:00, 21:00
       var hoursToShow = [0, 3, 6, 9, 12, 15, 18, 21];
 
       for (var i = 0; i < hoursToShow.length; i++) {
@@ -915,7 +998,7 @@
       }
     }
 
-    // Leaflet: Mapa rysująca trasę TomTom
+    // Leaflet: Mapa TomTom
     var leafletMapInstance = null;
     var leafletMarkersGroup = null;
 
@@ -983,16 +1066,20 @@
     }
 
     // START PRZY URUCHOMIENIU TELEWIZORA:
+    applyCommuteLayout();
     fetchWeatherData();
     updateAllCommutes();
 
-    // CYKLICZNE ODŚWIEŻANIE:
+    // CYKLICZNE SPRAWDZANIE:
+    // 1. Sprawdzanie i przełączanie trybu szczytu co minutę
+    setInterval(applyCommuteLayout, 60 * 1000);
+
+    // 2. Pogoda co 15 minut
     setInterval(fetchWeatherData, 15 * 60 * 1000);
 
+    // 3. Dojazdy TomTom: w oknie 5:00 - 9:00 (Pn-Pt) co 5 minut
     setInterval(function() {
-      var d = new Date();
-      var hrs = d.getHours();
-      if (hrs >= 5 && hrs < 9) {
+      if (isMorningRushHour()) {
         updateAllCommutes();
       }
     }, 5 * 60 * 1000);
