@@ -47,8 +47,7 @@
   </footer>
 
   <script>
-    // Bezpośredni schowek npoint (brak wymogu dodatkowych nagłówków)
-    var ENDPOINT = 'https://api.npoint.io/e4e7eef1df5395642647';
+    var STORAGE_URL = 'https://api.npoint.io/e4e7eef1df5395642647';
     var currentItems = [];
 
     function setStatus(text, color) {
@@ -58,22 +57,22 @@
     }
 
     function fetchNotes() {
-      setStatus('Synchronizacja...', '#38bdf8');
-      fetch(ENDPOINT)
+      setStatus('Pobieranie...', '#38bdf8');
+      fetch(STORAGE_URL + '?nocache=' + new Date().getTime())
         .then(function(res) { return res.json(); })
         .then(function(data) {
-          currentItems = Array.isArray(data.notes) ? data.notes : [];
+          currentItems = (data && Array.isArray(data.notes)) ? data.notes : [];
           renderList();
-          setStatus('Zsynchronizowano', '#00a884');
+          setStatus('Połączono', '#00a884');
         })
         .catch(function(err) {
-          setStatus('Błąd pobierania', '#ef4444');
+          setStatus('Błąd połączenia', '#ef4444');
         });
     }
 
     function saveNotes() {
-      setStatus('Zapisywanie...', '#fb923c');
-      fetch(ENDPOINT, {
+      setStatus('Wysyłam...', '#fb923c');
+      fetch(STORAGE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: currentItems })
@@ -110,7 +109,7 @@
       var val = inp.value.trim();
       if (!val) return;
 
-      currentItems.unshift(val); // Dodaje na samą górę
+      currentItems.unshift(val);
       inp.value = '';
       renderList();
       saveNotes();
@@ -123,7 +122,7 @@
     }
 
     function clearAll() {
-      if (confirm('Usunąć wszystkie notatki?')) {
+      if (confirm('Wyczyścić całą tablicę?')) {
         currentItems = [];
         renderList();
         saveNotes();
