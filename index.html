@@ -625,9 +625,8 @@
     var NOIR_COORDS = [51.122948175552956, 17.07826835270448];
     var TOMTOM_KEY = 'KX5qRepXbYZUHX9vuKYyWzQxojJHmJNM';
 
-    // MAGID BINA (Prywatny magazyn notatek):
-    var STORAGE_URL = 'https://api.jsonbin.io/v3/b/66205842ad19ca34f85be55d';
-    var STORAGE_KEY = '$2a$10$w1U4lD7vQxS.B4o7R27NiuV2f/OsuVomG2rWq6ZcI7t9gqg2qTz2i';
+    // MAGID SCHOWKA (npoint.io - bezpośredni dostęp bez blokad CORS):
+    var STORAGE_URL = 'https://api.npoint.io/e4e7eef1df5395642647';
     // ------------------------------------------------------------------
 
     // 1. Zegar i Data
@@ -643,28 +642,29 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Synchronizacja Notatek z telefonem
+    // 2. Pobieranie notatek na telewizorze
     function fetchLiveNotes() {
-      fetch(STORAGE_URL + '/latest', {
-        headers: { 'X-Master-Key': STORAGE_KEY }
-      })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        var items = (data && data.record && Array.isArray(data.record.notes)) ? data.record.notes : [];
-        var box = document.getElementById('tv-notes-box');
-        if (items.length === 0) {
-          box.innerHTML = '<div class="note-empty">Brak aktywnych notatek</div>';
-          return;
-        }
-        box.innerHTML = '';
-        items.forEach(function(txt) {
-          var div = document.createElement('div');
-          div.className = 'note-tv-item';
-          div.textContent = '• ' + txt;
-          box.appendChild(div);
-        });
-      })
-      .catch(function() {});
+      fetch(STORAGE_URL + '?nocache=' + new Date().getTime())
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          var items = (data && Array.isArray(data.notes)) ? data.notes : [];
+          var box = document.getElementById('tv-notes-box');
+          if (!box) return;
+
+          if (items.length === 0) {
+            box.innerHTML = '<div class="note-empty">Brak aktywnych notatek</div>';
+            return;
+          }
+
+          box.innerHTML = '';
+          items.slice(0, 4).forEach(function(txt) {
+            var div = document.createElement('div');
+            div.className = 'note-tv-item';
+            div.textContent = '• ' + txt;
+            box.appendChild(div);
+          });
+        })
+        .catch(function(err) {});
     }
 
     // 3. Kalendarz Tygodniowy
@@ -1109,7 +1109,7 @@
     // CYKLICZNE ZADANIA:
     setInterval(applyCommuteLayout, 60 * 1000);
     setInterval(fetchWeatherData, 15 * 60 * 1000);
-    setInterval(fetchLiveNotes, 10 * 1000); // synchronizacja notatek z telefonem co 10 sekund
+    setInterval(fetchLiveNotes, 5 * 1000); // odpytywanie notatek co 5 sekund
 
     setInterval(function() {
       if (isMorningRushHour()) {
