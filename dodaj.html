@@ -43,29 +43,32 @@
   </footer>
 
   <script>
-    var BUCKET_URL = 'https://kvdb.io/6PfxK16y6g9x4qW5E7eUuM/kielczow-tablica-notatki';
+    var STORAGE_URL = 'https://api.jsonbin.io/v3/b/66205842ad19ca34f85be55d';
+    var STORAGE_KEY = '$2a$10$w1U4lD7vQxS.B4o7R27NiuV2f/OsuVomG2rWq6ZcI7t9gqg2qTz2i';
     var currentItems = [];
 
     function fetchNotes() {
-      fetch(BUCKET_URL)
-        .then(function(res) {
-          if (!res.ok) return [];
-          return res.json();
-        })
-        .then(function(data) {
-          currentItems = Array.isArray(data) ? data : [];
-          renderList();
-        })
-        .catch(function() {
-          renderList();
-        });
+      fetch(STORAGE_URL + '/latest', {
+        headers: { 'X-Master-Key': STORAGE_KEY }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        currentItems = (data && data.record && Array.isArray(data.record.notes)) ? data.record.notes : [];
+        renderList();
+      })
+      .catch(function() {
+        renderList();
+      });
     }
 
     function saveNotes(callback) {
-      fetch(BUCKET_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentItems)
+      fetch(STORAGE_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': STORAGE_KEY
+        },
+        body: JSON.stringify({ notes: currentItems })
       }).then(function() {
         if (callback) callback();
       });
