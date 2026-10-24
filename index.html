@@ -6,34 +6,23 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    html, body {
-      width: 100%;
-      height: 100%;
-      min-height: 100vh;
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #f8fafc;
-      background-color: #0b0f19;
-      background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-
-    .main-wrapper {
-      width: 100%;
-      height: 100vh;
+      background: #0b0f19 url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 24px 36px;
-      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.35) 0%, rgba(11, 15, 25, 0.88) 100%);
+      padding: 16px 28px;
     }
 
     .card {
-      background: rgba(15, 23, 42, 0.72);
+      background: rgba(15, 23, 42, 0.78);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      backdrop-filter: blur(12px);
+      border-radius: 10px;
     }
 
     /* Pasek górny */
@@ -42,221 +31,125 @@
       justify-content: space-between;
       align-items: center;
     }
-    .clock-box { display: flex; align-items: baseline; gap: 16px; }
-    .clock-box h1 { font-size: 3.4rem; font-weight: 800; line-height: 1; letter-spacing: -1px; }
-    .clock-box p { font-size: 1.1rem; color: #94a3b8; text-transform: capitalize; }
+    .clock-box { display: flex; align-items: baseline; gap: 14px; }
+    .clock-box h1 { font-size: 3rem; font-weight: 800; line-height: 1; }
+    .clock-box p { font-size: 1rem; color: #94a3b8; }
 
     .weather-widget {
-      padding: 8px 18px;
+      padding: 6px 14px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
-    .w-icon { font-size: 2.2rem; }
-    .w-temp { font-size: 2rem; font-weight: 700; color: #38bdf8; text-align: right; line-height: 1; }
-    .w-feels { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    .w-icon { font-size: 2rem; }
+    .w-temp { font-size: 1.8rem; font-weight: 700; color: #38bdf8; text-align: right; line-height: 1; }
+    .w-feels { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
 
     /* Środek */
-    .middle-area {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin: auto 0;
-    }
-
     .grid-3 {
       display: grid;
       grid-template-columns: 1.15fr 1fr 0.85fr;
-      gap: 14px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .c-pad { padding: 14px 16px; }
+    .c-pad { padding: 10px 14px; }
     .card-title {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: #94a3b8;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
-    .run-verdict { font-size: 1.05rem; font-weight: 700; color: #4ade80; }
-    .run-desc { font-size: 0.74rem; color: #cbd5e1; margin-top: 3px; line-height: 1.3; }
+    .run-verdict { font-size: 0.95rem; font-weight: 700; color: #4ade80; }
+    .run-desc { font-size: 0.72rem; color: #cbd5e1; margin-top: 2px; }
     .metrics {
       display: flex;
       justify-content: space-between;
       border-top: 1px solid rgba(255,255,255,0.08);
-      padding-top: 8px;
-      margin-top: 10px;
+      padding-top: 6px;
+      margin-top: 6px;
     }
-    .m-lbl { font-size: 0.62rem; color: #94a3b8; text-transform: uppercase; }
-    .m-val { font-size: 0.82rem; font-weight: 600; }
+    .m-lbl { font-size: 0.58rem; color: #94a3b8; text-transform: uppercase; }
+    .m-val { font-size: 0.78rem; font-weight: 600; }
 
     .commute-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: rgba(255, 255, 255, 0.04);
-      padding: 7px 10px;
-      border-radius: 8px;
-      margin-bottom: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-bottom: 4px;
     }
-    .commute-name { font-size: 0.78rem; font-weight: 600; }
-    .commute-sub { font-size: 0.65rem; color: #94a3b8; }
-    .commute-time { font-size: 0.95rem; font-weight: 700; color: #38bdf8; }
+    .commute-name { font-size: 0.75rem; font-weight: 600; }
+    .commute-sub { font-size: 0.62rem; color: #94a3b8; }
+    .commute-time { font-size: 0.88rem; font-weight: 700; color: #38bdf8; }
 
     .note-box {
       background: rgba(255, 255, 255, 0.04);
       border-left: 2px solid #fb923c;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: #e2e8f0;
     }
 
-    /* Kalendarz Tygodniowy */
+    /* Kalendarz Tygodniowy wpisany w HTML */
     .week-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      margin-top: 6px;
+      gap: 6px;
+      margin-top: 4px;
     }
     .day-box {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 6px 8px;
-      min-height: 55px;
+      border-radius: 6px;
+      padding: 4px 6px;
+      min-height: 48px;
     }
     .day-box.today {
-      background: rgba(56, 189, 248, 0.12);
-      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.45);
     }
     .day-hdr {
       display: flex;
       justify-content: space-between;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 700;
       color: #94a3b8;
       border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding-bottom: 3px;
+      padding-bottom: 2px;
     }
     .day-box.today .day-hdr { color: #38bdf8; }
-    .day-txt { font-size: 0.62rem; color: #64748b; font-style: italic; margin-top: 4px; }
+    .day-txt { font-size: 0.6rem; color: #64748b; font-style: italic; margin-top: 3px; }
 
     /* Dolny pasek */
     .bottom-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 20px;
+      padding: 6px 16px;
     }
-    .b-left { display: flex; align-items: center; gap: 20px; }
-    .radio-unit { display: flex; align-items: center; gap: 10px; }
+    .b-left { display: flex; align-items: center; gap: 16px; }
+    .radio-unit { display: flex; align-items: center; gap: 8px; }
     .r-btn {
-      width: 34px; height: 34px; border-radius: 50%; border: none;
-      background: #38bdf8; color: #0b0f19; font-size: 0.9rem;
+      width: 32px; height: 32px; border-radius: 50%; border: none;
+      background: #38bdf8; color: #0b0f19; font-size: 0.85rem;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
-    .r-meta h4 { font-size: 0.82rem; font-weight: 700; }
-    .r-meta p { font-size: 0.68rem; color: #94a3b8; }
+    .r-meta h4 { font-size: 0.78rem; font-weight: 700; }
+    .r-meta p { font-size: 0.65rem; color: #94a3b8; }
 
     .tv-btn {
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
       color: #38bdf8;
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .tv-btn:hover { background: rgba(56, 189, 248, 0.25); }
-
-    .tag { font-size: 0.7rem; color: #94a3b8; }
-  </style>
-</head>
-<body>
-
-  <div class="main-wrapper" id="main-wrapper">
-    <!-- Góra -->
-    <div class="top-bar">
-      <div class="clock-box">
-        <h1 id="clock">12:00</h1>
-        <p id="date">Ładowanie daty...</p>
-      </div>
-
-      <div class="weather-widget card">
-        <div class="w-icon" id="w-icon">🌤️</div>
-        <div>
-          <div class="w-temp" id="w-temp">12°C</div>
-          <div class="w-feels" id="w-feels">Odczuwalna: 11°C</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Środek -->
-    <div class="middle-area">
-      <div class="grid-3">
-        <!-- 1. Indeks Biegowy -->
-        <div class="card c-pad">
-          <div class="card-title">
-            <span>🏃 Indeks Biegowy</span>
-            <span style="color: #4ade80;">PM2.5: Czysto</span>
-          </div>
-          <div class="run-verdict">Dobre warunki</div>
-          <div class="run-desc">Stabilna pogoda na wybieganie maratońskie.</div>
-          <div class="metrics">
-            <div><div class="m-lbl">Wiatr / Porywy</div><div class="m-val" id="m-wind">16 / 28 km/h</div></div>
-            <div><div class="m-lbl">Wilgotność</div><div class="m-val" id="m-hum">60%</div></div>
-            <div><div class="m-lbl">Opady</div><div class="m-val" id="m-rain">0.0 mm</div></div>
-          </div>
-        </div>
-
-        <!-- 2. Dojazdy -->
-        <div class="card c-pad">
-          <div class="card-title">
-            <span>🚗 Dojazdy z Kiełczowa (ul. Polna)</span>
-            <span style="color: #38bdf8;">Na żywo</span>
-          </div>
-          <div class="commute-row">
-            <div>
-              <div class="commute-name">Tsusho Łęg</div>
-              <div class="commute-sub">przez Wschodnią Obwodnicę (WOW)</div>
-            </div>
-            <div class="commute-time" id="t-tsusho">25 min</div>
-          </div>
-          <div class="commute-row">
-            <div>
-              <div class="commute-name">Kochanowskiego 55a</div>
-              <div class="commute-sub">przez Krzywoustego / Brucknera</div>
-            </div>
-            <div class="commute-time" id="t-koch">23 min</div>
-          </div>
-        </div>
-
-        <!-- 3. Tablica -->
-        <div class="card c-pad">
-          <div class="card-title">📌 Tablica Na Szybko</div>
-          <div class="note-box">
-            Wspólna lista: gotowa do synchronizacji notatek
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. Kalendarz Tygodniowy -->
-      <div class="card c-pad">
-        <div class="card-title">
-          <span>📅 Rozpiska Tygodnia</span>
-          <span style="color: #38bdf8;">Bieżący tydzień</span>
-        </div>
-        <div class="week-grid" id="week-grid"></div>
-      </div>
-    </div>
-
-    <!-- Pasek Dolny -->
-    <div class="bottom-bar card">
-      <div class="b-left">
-        <div class="radio-unit">
-          <button class="r
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight
