@@ -303,7 +303,7 @@
     .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
     .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
 
-    /* Modal Prognozy Pogody */
+    /* Modal Prognozy Pogody (4 Dni) */
     .forecast-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -320,35 +320,24 @@
       flex-direction: column;
       justify-content: space-between;
       gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+    .f-card:hover, .f-card:focus {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: rgba(56, 189, 248, 0.55);
+      transform: translateY(-2px);
     }
     .f-card.today-highlight {
-      border-color: rgba(56, 189, 248, 0.5);
-      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.06);
     }
-    .f-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #38bdf8;
-    }
-    .f-date {
-      font-size: 0.68rem;
-      color: #94a3b8;
-    }
-    .f-icon {
-      font-size: 2.3rem;
-      line-height: 1;
-      margin: 4px 0;
-    }
-    .f-temp {
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #f8fafc;
-    }
-    .f-temp-min {
-      font-size: 0.82rem;
-      color: #94a3b8;
-      font-weight: 500;
-    }
+    .f-title { font-size: 0.95rem; font-weight: 700; color: #38bdf8; }
+    .f-date { font-size: 0.68rem; color: #94a3b8; }
+    .f-icon { font-size: 2.3rem; line-height: 1; margin: 4px 0; }
+    .f-temp { font-size: 1.25rem; font-weight: 800; color: #f8fafc; }
+    .f-temp-min { font-size: 0.82rem; color: #94a3b8; font-weight: 500; }
     .f-details {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding-top: 8px;
@@ -358,6 +347,38 @@
       flex-direction: column;
       gap: 3px;
     }
+    .f-click-hint {
+      font-size: 0.6rem;
+      color: #38bdf8;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 4px;
+    }
+
+    /* Przekrój Godzinowy Doby (8 bloków po 3h) */
+    .hourly-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .h-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 10px 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 5px;
+    }
+    .h-hour { font-size: 0.76rem; font-weight: 700; color: #38bdf8; }
+    .h-icon { font-size: 1.6rem; line-height: 1; margin: 2px 0; }
+    .h-temp { font-size: 0.95rem; font-weight: 800; color: #f8fafc; }
+    .h-rain { font-size: 0.62rem; color: #38bdf8; font-weight: 600; }
+    .h-wind { font-size: 0.6rem; color: #94a3b8; }
   </style>
 </head>
 <body>
@@ -370,7 +391,7 @@
         <p id="date">Ładowanie daty...</p>
       </div>
 
-      <!-- Kafel pogody z bezpośrednim onclick i onkeydown -->
+      <!-- Kafel pogody -->
       <div class="weather-widget card" id="weather-btn" tabindex="0" onclick="openWeatherModal()" onkeydown="if(event.key==='Enter') openWeatherModal()">
         <div class="w-icon" id="w-icon">🌤️</div>
         <div>
@@ -508,19 +529,26 @@
     </div>
   </div>
 
-  <!-- Modal 3: Prognoza Pogody 4-Dniowa -->
+  <!-- Modal 3: Interaktywna Pogoda (Dni ➔ Przekrój Godzinowy) -->
   <div class="modal-overlay" id="weather-modal" onclick="closeModalOnBg(event, 'weather-modal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>🌦️ Prognoza pogody: Kiełczów</h3>
-        <button class="close-btn" onclick="closeModal('weather-modal')">✕ Zamknij</button>
+        <h3 id="weather-modal-title">🌦️ Prognoza pogody: Kiełczów</h3>
+        <div class="modal-nav">
+          <button class="nav-btn" id="weather-back-btn" style="display: none;" onclick="showDaysView()">◀ Wróć do dni</button>
+          <button class="close-btn" onclick="closeModal('weather-modal')">✕ Zamknij</button>
+        </div>
       </div>
 
-      <div class="forecast-grid" id="forecast-container">
+      <!-- Widok 1: 4 Dni -->
+      <div class="forecast-grid" id="forecast-days-container">
         <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">
           Ładowanie prognozy pogody...
         </div>
       </div>
+
+      <!-- Widok 2: Godzinowy przekrój doby -->
+      <div class="hourly-grid" id="forecast-hourly-container" style="display: none;"></div>
     </div>
   </div>
 
@@ -546,8 +574,9 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Pogoda Open-Meteo
+    // 2. Pogoda Open-Meteo (Aktualna + Dzienna + Godzinowa)
     var forecastDailyData = null;
+    var forecastHourlyData = null;
 
     function weatherCodeToInfo(code) {
       if (code === 0) return { icon: '☀️', desc: 'Słonecznie' };
@@ -565,6 +594,7 @@
     function fetchWeatherData() {
       var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + DOM_COORDS[0] + '&longitude=' + DOM_COORDS[1] +
         '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m' +
+        '&hourly=temperature_2m,precipitation,weather_code,wind_speed_10m,wind_gusts_10m' +
         '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_gusts_10m_max&timezone=auto';
 
       fetch(url)
@@ -614,20 +644,23 @@
             }
           }
 
-          if (data && data.daily) {
-            forecastDailyData = data.daily;
-            // Jeśli modal jest otwarty w trakcie pobierania, natychmiast go wypełnij
-            var modal = document.getElementById('weather-modal');
-            if (modal && modal.classList.contains('open')) {
-              renderWeatherModal();
+          if (data && data.daily) forecastDailyData = data.daily;
+          if (data && data.hourly) forecastHourlyData = data.hourly;
+
+          var modal = document.getElementById('weather-modal');
+          if (modal && modal.classList.contains('open')) {
+            var hourlyContainer = document.getElementById('forecast-hourly-container');
+            if (hourlyContainer.style.display === 'none') {
+              renderDaysView();
             }
           }
         })
         .catch(function() {});
     }
 
-    function renderWeatherModal() {
-      var container = document.getElementById('forecast-container');
+    // Widok 1: Dni
+    function renderDaysView() {
+      var container = document.getElementById('forecast-days-container');
       if (!forecastDailyData) {
         container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">Ładowanie aktualnej prognozy...</div>';
         return;
@@ -637,43 +670,100 @@
       var titles = ['Dziś', 'Jutro', 'Pojutrze', 'Popojutrze'];
 
       for (var i = 0; i < 4; i++) {
-        var dateRaw = forecastDailyData.time[i];
-        var parts = dateRaw.split('-');
-        var dateFormatted = parts[2] + '.' + parts[1];
+        (function(index) {
+          var dateRaw = forecastDailyData.time[index];
+          var parts = dateRaw.split('-');
+          var dateFormatted = parts[2] + '.' + parts[1];
 
-        var code = forecastDailyData.weather_code[i];
-        var info = weatherCodeToInfo(code);
-        var maxT = Math.round(forecastDailyData.temperature_2m_max[i]);
-        var minT = Math.round(forecastDailyData.temperature_2m_min[i]);
-        var rain = forecastDailyData.precipitation_sum[i];
-        var gusts = Math.round(forecastDailyData.wind_gusts_10m_max[i]);
+          var code = forecastDailyData.weather_code[index];
+          var info = weatherCodeToInfo(code);
+          var maxT = Math.round(forecastDailyData.temperature_2m_max[index]);
+          var minT = Math.round(forecastDailyData.temperature_2m_min[index]);
+          var rain = forecastDailyData.precipitation_sum[index];
+          var gusts = Math.round(forecastDailyData.wind_gusts_10m_max[index]);
 
-        var card = document.createElement('div');
-        card.className = 'f-card' + (i === 0 ? ' today-highlight' : '');
-        card.innerHTML =
-          '<div>' +
-            '<div class="f-title">' + titles[i] + '</div>' +
-            '<div class="f-date">' + dateFormatted + '</div>' +
-          '</div>' +
-          '<div class="f-icon">' + info.icon + '</div>' +
-          '<div>' +
-            '<div class="f-temp">' + maxT + '°C</div>' +
-            '<div class="f-temp-min">noc: ' + minT + '°C</div>' +
-          '</div>' +
-          '<div class="f-details">' +
-            '<div>💧 Deszcz: <b>' + rain.toFixed(1) + ' mm</b></div>' +
-            '<div>💨 Porywy: <b>' + gusts + ' km/h</b></div>' +
-            '<div style="color: #94a3b8; font-size: 0.62rem; margin-top: 2px;">' + info.desc + '</div>' +
-          '</div>';
+          var card = document.createElement('div');
+          card.className = 'f-card' + (index === 0 ? ' today-highlight' : '');
+          card.tabIndex = 0;
+          card.innerHTML =
+            '<div>' +
+              '<div class="f-title">' + titles[index] + '</div>' +
+              '<div class="f-date">' + dateFormatted + '</div>' +
+            '</div>' +
+            '<div class="f-icon">' + info.icon + '</div>' +
+            '<div>' +
+              '<div class="f-temp">' + maxT + '°C</div>' +
+              '<div class="f-temp-min">noc: ' + minT + '°C</div>' +
+            '</div>' +
+            '<div class="f-details">' +
+              '<div>💧 Deszcz: <b>' + rain.toFixed(1) + ' mm</b></div>' +
+              '<div>💨 Porywy: <b>' + gusts + ' km/h</b></div>' +
+              '<div style="color: #94a3b8; font-size: 0.62rem; margin-top: 2px;">' + info.desc + '</div>' +
+            '</div>' +
+            '<div class="f-click-hint">Sprawdź godziny ▶</div>';
 
-        container.appendChild(card);
+          card.onclick = function() { showHourlyView(index, titles[index], dateFormatted); };
+          card.onkeydown = function(e) { if (e.key === 'Enter') showHourlyView(index, titles[index], dateFormatted); };
+
+          container.appendChild(card);
+        })(i);
       }
+    }
+
+    // Widok 2: Przekrój Dobowy (Godziny)
+    function showHourlyView(dayIndex, dayTitle, dayDate) {
+      if (!forecastHourlyData) return;
+
+      document.getElementById('weather-modal-title').textContent = '⏱️ Przekrój dobowy: ' + dayTitle + ' (' + dayDate + ')';
+      document.getElementById('weather-back-btn').style.display = 'inline-block';
+      document.getElementById('forecast-days-container').style.display = 'none';
+
+      var hourlyContainer = document.getElementById('forecast-hourly-container');
+      hourlyContainer.style.display = 'grid';
+      hourlyContainer.innerHTML = '';
+
+      var dayStartHourIndex = dayIndex * 24;
+
+      // Pokazujemy 8 bloków co 3 godziny: 0:00, 3:00, 6:00, 9:00, 12:00, 15:00, 18:00, 21:00
+      var hoursToShow = [0, 3, 6, 9, 12, 15, 18, 21];
+
+      for (var i = 0; i < hoursToShow.length; i++) {
+        var hourOffset = hoursToShow[i];
+        var dataIdx = dayStartHourIndex + hourOffset;
+
+        if (dataIdx >= forecastHourlyData.time.length) break;
+
+        var temp = Math.round(forecastHourlyData.temperature_2m[dataIdx]);
+        var rain = forecastHourlyData.precipitation[dataIdx];
+        var gusts = Math.round(forecastHourlyData.wind_gusts_10m[dataIdx]);
+        var code = forecastHourlyData.weather_code[dataIdx];
+        var info = weatherCodeToInfo(code);
+
+        var hourCard = document.createElement('div');
+        hourCard.className = 'h-card';
+        hourCard.innerHTML =
+          '<div class="h-hour">' + String(hourOffset).padStart(2, '0') + ':00</div>' +
+          '<div class="h-icon">' + info.icon + '</div>' +
+          '<div class="h-temp">' + temp + '°C</div>' +
+          '<div class="h-rain">💧 ' + rain.toFixed(1) + ' mm</div>' +
+          '<div class="h-wind">💨 ' + gusts + ' km/h</div>';
+
+        hourlyContainer.appendChild(hourCard);
+      }
+    }
+
+    function showDaysView() {
+      document.getElementById('weather-modal-title').textContent = '🌦️ Prognoza pogody: Kiełczów';
+      document.getElementById('weather-back-btn').style.display = 'none';
+      document.getElementById('forecast-hourly-container').style.display = 'none';
+      document.getElementById('forecast-days-container').style.display = 'grid';
+      renderDaysView();
     }
 
     function openWeatherModal() {
       document.getElementById('weather-modal').classList.add('open');
-      renderWeatherModal();
-      if (!forecastDailyData) {
+      showDaysView();
+      if (!forecastDailyData || !forecastHourlyData) {
         fetchWeatherData();
       }
     }
