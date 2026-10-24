@@ -6,22 +6,34 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    body {
-      width: 100vw;
-      height: 100vh;
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #f8fafc;
-      background: #0b0f19 url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85') center/cover no-repeat;
+      background-color: #0b0f19;
+      background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .main-wrapper {
+      width: 100%;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       padding: 24px 36px;
+      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.35) 0%, rgba(11, 15, 25, 0.88) 100%);
     }
 
     .card {
-      background: rgba(15, 23, 42, 0.70);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 12px;
+      backdrop-filter: blur(12px);
     }
 
     /* Pasek górny */
@@ -31,7 +43,7 @@
       align-items: center;
     }
     .clock-box { display: flex; align-items: baseline; gap: 16px; }
-    .clock-box h1 { font-size: 3.4rem; font-weight: 800; line-height: 1; }
+    .clock-box h1 { font-size: 3.4rem; font-weight: 800; line-height: 1; letter-spacing: -1px; }
     .clock-box p { font-size: 1.1rem; color: #94a3b8; text-transform: capitalize; }
 
     .weather-widget {
@@ -45,11 +57,17 @@
     .w-feels { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
 
     /* Środek */
+    .middle-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: auto 0;
+    }
+
     .grid-3 {
       display: grid;
       grid-template-columns: 1.15fr 1fr 0.85fr;
       gap: 14px;
-      margin-bottom: 12px;
     }
     .c-pad { padding: 14px 16px; }
     .card-title {
@@ -141,3 +159,104 @@
       background: #38bdf8; color: #0b0f19; font-size: 0.9rem;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
+    .r-meta h4 { font-size: 0.82rem; font-weight: 700; }
+    .r-meta p { font-size: 0.68rem; color: #94a3b8; }
+
+    .tv-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tv-btn:hover { background: rgba(56, 189, 248, 0.25); }
+
+    .tag { font-size: 0.7rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+  <div class="main-wrapper" id="main-wrapper">
+    <!-- Góra -->
+    <div class="top-bar">
+      <div class="clock-box">
+        <h1 id="clock">12:00</h1>
+        <p id="date">Ładowanie daty...</p>
+      </div>
+
+      <div class="weather-widget card">
+        <div class="w-icon" id="w-icon">🌤️</div>
+        <div>
+          <div class="w-temp" id="w-temp">12°C</div>
+          <div class="w-feels" id="w-feels">Odczuwalna: 11°C</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Środek -->
+    <div class="middle-area">
+      <div class="grid-3">
+        <!-- 1. Indeks Biegowy -->
+        <div class="card c-pad">
+          <div class="card-title">
+            <span>🏃 Indeks Biegowy</span>
+            <span style="color: #4ade80;">PM2.5: Czysto</span>
+          </div>
+          <div class="run-verdict">Dobre warunki</div>
+          <div class="run-desc">Stabilna pogoda na wybieganie maratońskie.</div>
+          <div class="metrics">
+            <div><div class="m-lbl">Wiatr / Porywy</div><div class="m-val" id="m-wind">16 / 28 km/h</div></div>
+            <div><div class="m-lbl">Wilgotność</div><div class="m-val" id="m-hum">60%</div></div>
+            <div><div class="m-lbl">Opady</div><div class="m-val" id="m-rain">0.0 mm</div></div>
+          </div>
+        </div>
+
+        <!-- 2. Dojazdy -->
+        <div class="card c-pad">
+          <div class="card-title">
+            <span>🚗 Dojazdy z Kiełczowa (ul. Polna)</span>
+            <span style="color: #38bdf8;">Na żywo</span>
+          </div>
+          <div class="commute-row">
+            <div>
+              <div class="commute-name">Tsusho Łęg</div>
+              <div class="commute-sub">przez Wschodnią Obwodnicę (WOW)</div>
+            </div>
+            <div class="commute-time" id="t-tsusho">25 min</div>
+          </div>
+          <div class="commute-row">
+            <div>
+              <div class="commute-name">Kochanowskiego 55a</div>
+              <div class="commute-sub">przez Krzywoustego / Brucknera</div>
+            </div>
+            <div class="commute-time" id="t-koch">23 min</div>
+          </div>
+        </div>
+
+        <!-- 3. Tablica -->
+        <div class="card c-pad">
+          <div class="card-title">📌 Tablica Na Szybko</div>
+          <div class="note-box">
+            Wspólna lista: gotowa do synchronizacji notatek
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Kalendarz Tygodniowy -->
+      <div class="card c-pad">
+        <div class="card-title">
+          <span>📅 Rozpiska Tygodnia</span>
+          <span style="color: #38bdf8;">Bieżący tydzień</span>
+        </div>
+        <div class="week-grid" id="week-grid"></div>
+      </div>
+    </div>
+
+    <!-- Pasek Dolny -->
+    <div class="bottom-bar card">
+      <div class="b-left">
+        <div class="radio-unit">
+          <button class="r
