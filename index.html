@@ -60,7 +60,7 @@
 
     .grid-3 {
       display: grid;
-      grid-template-columns: 1.15fr 1fr 0.85fr;
+      grid-template-columns: 1.15fr 1.05fr 0.8fr;
       gap: 8px;
     }
     .c-pad { padding: 8px 12px; }
@@ -87,14 +87,22 @@
     .m-lbl { font-size: 0.55rem; color: #94a3b8; text-transform: uppercase; }
     .m-val { font-size: 0.74rem; font-weight: 600; }
 
+    /* Klikalne wiersze dojazdów */
     .commute-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: rgba(255, 255, 255, 0.04);
-      padding: 4px 8px;
+      padding: 5px 8px;
       border-radius: 6px;
       margin-bottom: 4px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .commute-row:hover {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.4);
     }
     .commute-name { font-size: 0.72rem; font-weight: 600; }
     .commute-sub { font-size: 0.58rem; color: #94a3b8; }
@@ -156,7 +164,6 @@
     .r-meta h4 { font-size: 0.74rem; font-weight: 700; }
     .r-meta p { font-size: 0.6rem; color: #94a3b8; }
 
-    /* Nowy Przycisk Kalendarza Miesięcznego */
     .cal-btn {
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
@@ -166,15 +173,12 @@
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
     .cal-btn:hover { background: rgba(56, 189, 248, 0.28); }
 
     .tag { font-size: 0.65rem; color: #94a3b8; }
 
-    /* Modal - Pełny Kalendarz Miesięczny */
+    /* Wspólne style Modali */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -188,9 +192,9 @@
     .modal-overlay.open { display: flex; }
 
     .modal-content {
-      width: 720px;
-      max-width: 90vw;
-      background: rgba(15, 23, 42, 0.95);
+      width: 760px;
+      max-width: 92vw;
+      background: rgba(15, 23, 42, 0.96);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 12px;
       padding: 18px 24px;
@@ -203,16 +207,11 @@
       margin-bottom: 12px;
     }
     .modal-header h3 {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       font-weight: 700;
-      text-transform: capitalize;
       color: #f8fafc;
     }
-    .modal-nav {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .modal-nav { display: flex; gap: 8px; align-items: center; }
     .nav-btn {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.15);
@@ -223,8 +222,18 @@
       font-size: 0.75rem;
       font-weight: 600;
     }
-    .nav-btn:hover { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .close-btn {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
 
+    /* Modal Kalendarza Miesięcznego */
     .month-weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -237,11 +246,7 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       margin-bottom: 6px;
     }
-    .month-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
+    .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .m-day {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
@@ -255,24 +260,47 @@
       flex-direction: column;
       justify-content: space-between;
     }
-    .m-day.other-month {
-      opacity: 0.25;
-    }
+    .m-day.other-month { opacity: 0.25; }
     .m-day.current-today {
       background: rgba(56, 189, 248, 0.2);
       border-color: #38bdf8;
       color: #38bdf8;
       font-weight: 800;
     }
-    .close-btn {
-      background: #ef4444;
+
+    /* Modal Mapy Trasy */
+    .map-frame-wrapper {
+      width: 100%;
+      height: 380px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: #000;
+      margin-bottom: 12px;
+    }
+    .map-frame-wrapper iframe {
+      width: 100%;
+      height: 100%;
       border: none;
+    }
+    .route-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+    .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
+    .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+    .gmaps-link {
+      background: #2563eb;
       color: white;
-      padding: 5px 12px;
+      text-decoration: none;
+      padding: 6px 14px;
       border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
       font-size: 0.75rem;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -313,22 +341,22 @@
           </div>
         </div>
 
-        <!-- 2. Dojazdy -->
+        <!-- 2. Dojazdy (Klikalne kafelki tras!) -->
         <div class="card c-pad">
           <div class="card-title">
             <span>🚗 Dojazdy z Kiełczowa (ul. Polna)</span>
-            <span style="color: #38bdf8;">Na żywo</span>
+            <span style="color: #38bdf8;">Kliknij, by zobaczyć trasę</span>
           </div>
-          <div class="commute-row">
+          <div class="commute-row" onclick="openRouteModal('tsusho')">
             <div>
-              <div class="commute-name">Tsusho Łęg</div>
+              <div class="commute-name">Tsusho Łęg 🗺️</div>
               <div class="commute-sub">przez Wschodnią Obwodnicę (WOW)</div>
             </div>
             <div class="commute-time">25 min</div>
           </div>
-          <div class="commute-row">
+          <div class="commute-row" onclick="openRouteModal('koch')">
             <div>
-              <div class="commute-name">Kochanowskiego 55a</div>
+              <div class="commute-name">Kochanowskiego 55a 🗺️</div>
               <div class="commute-sub">przez Krzywoustego / Brucknera</div>
             </div>
             <div class="commute-time">23 min</div>
@@ -366,7 +394,6 @@
           <audio id="audio" src="https://stream2.prw.pl:8001/radioram" preload="none"></audio>
         </div>
 
-        <!-- Przycisk Pełnego Miesiąca -->
         <button class="cal-btn" onclick="openMonthModal()">
           📅 Pokaż cały miesiąc
         </button>
@@ -376,16 +403,16 @@
     </div>
   </div>
 
-  <!-- Okno modalne: Pełny Kalendarz Miesięczny -->
-  <div class="modal-overlay" id="month-modal" onclick="closeModalOnBg(event)">
+  <!-- Okno modalne 1: Pełny Kalendarz Miesięczny -->
+  <div class="modal-overlay" id="month-modal" onclick="closeModalOnBg(event, 'month-modal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="modal-month-title">Październik 2026</h3>
+        <h3 id="modal-month-title">Miesiąc</h3>
         <div class="modal-nav">
           <button class="nav-btn" onclick="changeMonth(-1)">◀ Poprzedni</button>
           <button class="nav-btn" onclick="resetToCurrentMonth()">Dziś</button>
           <button class="nav-btn" onclick="changeMonth(1)">Następny ▶</button>
-          <button class="close-btn" onclick="closeMonthModal()">✕ Zamknij</button>
+          <button class="close-btn" onclick="closeModal('month-modal')">✕ Zamknij</button>
         </div>
       </div>
 
@@ -394,6 +421,28 @@
       </div>
 
       <div class="month-grid" id="month-grid"></div>
+    </div>
+  </div>
+
+  <!-- Okno modalne 2: Interaktywna Mapa Trasy -->
+  <div class="modal-overlay" id="route-modal" onclick="closeModalOnBg(event, 'route-modal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="route-modal-title">Trasa: Kiełczów ➔ Tsusho Łęg</h3>
+        <button class="close-btn" onclick="closeModal('route-modal')">✕ Zamknij</button>
+      </div>
+
+      <div class="map-frame-wrapper">
+        <iframe id="route-iframe" src="about:blank"></iframe>
+      </div>
+
+      <div class="route-details">
+        <div class="route-meta">
+          <h5 id="route-name-badge">Najszybsza trasa: ~25 min</h5>
+          <p id="route-sub-badge">Kiełczów (Polna) ➔ Łaniewska ➔ WOW ➔ Tsusho Łęg</p>
+        </div>
+        <a id="route-gmaps-btn" href="#" target="_blank" class="gmaps-link">📍 Otwórz w Google Maps</a>
+      </div>
     </div>
   </div>
 
@@ -409,7 +458,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Kalendarz Tygodniowy (na pulpicie)
+    // 2. Kalendarz Tygodniowy
     const daysNames = ['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
     const now = new Date();
     const dayOfWeek = (now.getDay() + 6) % 7;
@@ -425,40 +474,28 @@
       weekGrid.appendChild(col);
     }
 
-    // 3. Kalendarz Pełnego Miesiąca (Interaktywny)
+    // 3. Kalendarz Pełnego Miesiąca
     let viewDate = new Date();
-
     function renderMonthCalendar() {
       const year = viewDate.getFullYear();
       const month = viewDate.getMonth();
-      
-      const monthNames = [
-        'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
-        'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
-      ];
+      const monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
       document.getElementById('modal-month-title').textContent = monthNames[month] + ' ' + year;
 
       const grid = document.getElementById('month-grid');
       grid.innerHTML = '';
-
-      // Pierwszy dzień miesiąca i ile dni ma miesiąc
       const firstDay = new Date(year, month, 1);
       const lastDay = new Date(year, month + 1, 0);
       const totalDays = lastDay.getDate();
-
-      // Dzień tygodnia pierwszego dnia (0 = Ndz, 1 = Pn...) -> konwersja na Pn = 0
       const startDayIndex = (firstDay.getDay() + 6) % 7;
-
-      // Dni z poprzedniego miesiąca (padding)
       const prevLastDay = new Date(year, month, 0).getDate();
+
       for (let i = startDayIndex - 1; i >= 0; i--) {
         const cell = document.createElement('div');
         cell.className = 'm-day other-month';
         cell.innerHTML = '<span>' + (prevLastDay - i) + '</span>';
         grid.appendChild(cell);
       }
-
-      // Dni bieżącego miesiąca
       const today = new Date();
       for (let day = 1; day <= totalDays; day++) {
         const cell = document.createElement('div');
@@ -467,8 +504,6 @@
         cell.innerHTML = '<span>' + day + '</span>';
         grid.appendChild(cell);
       }
-
-      // Dni z następnego miesiąca (do pełnych tygodni)
       const totalCells = startDayIndex + totalDays;
       const remainingCells = (7 - (totalCells % 7)) % 7;
       for (let nextDay = 1; nextDay <= remainingCells; nextDay++) {
@@ -478,31 +513,68 @@
         grid.appendChild(cell);
       }
     }
-
     function openMonthModal() {
       document.getElementById('month-modal').classList.add('open');
       renderMonthCalendar();
     }
-
-    function closeMonthModal() {
-      document.getElementById('month-modal').classList.remove('open');
-    }
-
-    function closeModalOnBg(e) {
-      if (e.target.id === 'month-modal') closeMonthModal();
-    }
-
     function changeMonth(delta) {
       viewDate.setMonth(viewDate.getMonth() + delta);
       renderMonthCalendar();
     }
-
     function resetToCurrentMonth() {
       viewDate = new Date();
       renderMonthCalendar();
     }
 
-    // 4. Radio RAM
+    // 4. Modal Trasy Dojazdu (Tsusho Łęg oraz Kochanowskiego)
+    const routesConfig = {
+      tsusho: {
+        title: 'Trasa: Kiełczów ➔ Tsusho Łęg',
+        badge: 'Najszybsza trasa: ~25 min (przez Wschodnią Obwodnicę)',
+        sub: 'Polna ➔ Wilczycka ➔ Rondo Łany ➔ WOW ➔ Tsusho Łęg',
+        // Precyzyjny widok mapy obejmujący Kiełczów i Łęg
+        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.1100%2C51.0200%2C17.3100%2C51.1700&layer=mapnik&marker=51.0268%2C17.2798',
+        gmapsUrl: 'https://www.google.com/maps/dir/51.1557,17.1512/51.0268,17.2798'
+      },
+      koch: {
+        title: 'Trasa: Kiełczów ➔ Kochanowskiego 55a',
+        badge: 'Najszybsza trasa: ~23 min (przez Krzywoustego)',
+        sub: 'Polna ➔ Kiełczowska ➔ Krzywoustego ➔ Brucknera ➔ Kochanowskiego 55a',
+        // Precyzyjny widok obejmujący Kiełczów i Kochanowskiego / Psie Pole
+        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.0500%2C51.1100%2C17.1700%2C51.1650&layer=mapnik&marker=51.1198%2C17.0754',
+        gmapsUrl: 'https://www.google.com/maps/dir/51.1557,17.1512/51.1198,17.0754'
+      }
+    };
+
+    function openRouteModal(destKey) {
+      const config = routesConfig[destKey];
+      if (!config) return;
+
+      document.getElementById('route-modal-title').textContent = config.title;
+      document.getElementById('route-name-badge').textContent = config.badge;
+      document.getElementById('route-sub-badge').textContent = config.sub;
+      document.getElementById('route-iframe').src = config.mapUrl;
+      document.getElementById('route-gmaps-btn').href = config.gmapsUrl;
+
+      document.getElementById('route-modal').classList.add('open');
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('open');
+        // Czyszczenie iframe po zamknięciu, by nie obciążać TV
+        if (modalId === 'route-modal') {
+          document.getElementById('route-iframe').src = 'about:blank';
+        }
+      }
+    }
+
+    function closeModalOnBg(e, modalId) {
+      if (e.target.id === modalId) closeModal(modalId);
+    }
+
+    // 5. Radio RAM
     const aud = document.getElementById('audio');
     const rBtn = document.getElementById('radio-btn');
     const rSt = document.getElementById('r-status');
