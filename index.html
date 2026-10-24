@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.9)),
+                  url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem 4rem;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .clock-box h1 {
+      font-size: 5.5rem;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .clock-box p {
+      font-size: 1.5rem;
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      text-transform: capitalize;
+    }
+    .weather-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 1.25rem 2rem;
+      border-radius: 1.25rem;
+      text-align: right;
+    }
+    .weather-temp {
+      font-size: 3rem;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .weather-details {
+      font-size: 1.1rem;
+      color: #cbd5e1;
+      margin-top: 0.25rem;
+    }
+    .run-badge {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+    .center-section {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    .player-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 1.5rem 2rem;
+      border-radius: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      width: 420px;
+    }
+    .player-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: #38bdf8;
+      color: #0f172a;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .player-btn:focus, .player-btn:hover {
+      transform: scale(1.08);
+      background: #7dd3fc;
+      outline: 3px solid #fff;
+    }
+    .player-info h3 { font-size: 1.3rem; margin-bottom: 0.25rem; }
+    .player-info p { font-size: 0.95rem; color: #94a3b8; }
+    .quick-tiles {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .tile {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 1.2rem 1.8rem;
+      border-radius: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .tile:focus, .tile:hover {
+      background: rgba(56, 189, 248, 0.3);
+      border-color: #38bdf8;
+      transform: translateY(-4px);
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="clock-box">
+      <h1 id="clock">--:--</h1>
+      <p id="date">Ładowanie daty...</p>
+    </div>
+    <div class="weather-card">
+      <div class="weather-temp" id="temp">--°C</div>
+      <div class="weather-details" id="weather-desc">Kiełczów / Wrocław</div>
+      <div class="run-badge" id="run-badge">Warunki biegowe: Obliczanie...</div>
+    </div>
+  </div>
+
+  <div class="center-section">
+    <div class="player-card">
+      <button class="player-btn" id="radio-btn" onclick="toggleRadio()">▶</button>
+      <div class="player-info">
+        <h3>Radio RAM 89.8 FM</h3>
+        <p id="radio-status">Gotowe do odtworzenia</p>
+      </div>
+      <audio id="audio-stream" src="https://stream.radioram.pl:8000/ram_mp3" preload="none"></audio>
+    </div>
+
+    <div class="quick-tiles">
+      <div class="tile" tabindex="0">🏠 Dom</div>
+      <div class="tile" tabindex="0">🏃 Trening: 10k / Maraton</div>
+      <div class="tile" tabindex="0">⛰️ Wyprawy</div>
+    </div>
+  </div>
+
+  <script>
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${hours}:${minutes}`;
+
+      const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('date').textContent = now.toLocaleDateString('pl-PL', options);
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    async function loadWeather() {
+      try {
+        // Współrzędne Kiełczów / Wrocław
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.1378&longitude=17.1539&current_weather=true&hourly=precipitation_probability');
+        const data = await res.json();
+        const cur = data.current_weather;
+        const temp = Math.round(cur.temperature);
+        const wind = Math.round(cur.windspeed);
+
+        document.getElementById('temp').textContent = `${temp}°C`;
+        document.getElementById('weather-desc').textContent = `Wiatr: ${wind} km/h • Kiełczów`;
+
+        const badge = document.getElementById('run-badge');
+        if (temp >= 5 && temp <= 18 && wind < 25) {
+          badge.textContent = '🏃 Warunki biegowe: Idealne';
+          badge.style.color = '#4ade80';
+        } else if (temp < 0 || wind >= 35) {
+          badge.textContent = '🏃 Warunki biegowe: Wymagające';
+          badge.style.color = '#f87171';
+        } else {
+          badge.textContent = '🏃 Warunki biegowe: Dobre';
+          badge.style.color = '#facc15';
+        }
+      } catch (e) {
+        document.getElementById('temp').textContent = '--°C';
+      }
+    }
+    loadWeather();
+    setInterval(loadWeather, 600000); // odświeżanie co 10 minut
+
+    const audio = document.getElementById('audio-stream');
+    const btn = document.getElementById('radio-btn');
+    const status = document.getElementById('radio-status');
+
+    function toggleRadio() {
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = '❚❚';
+        status.textContent = 'Na żywo we Wrocławiu';
+      } else {
+        audio.pause();
+        btn.textContent = '▶';
+        status.textContent = 'Wstrzymano';
+      }
+    }
+  </script>
+</body>
+</html>
