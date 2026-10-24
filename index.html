@@ -100,8 +100,8 @@
       border: 1px solid transparent;
       transition: all 0.15s ease;
     }
-    .commute-row:hover {
-      background: rgba(56, 189, 248, 0.15);
+    .commute-row:hover, .commute-row:focus {
+      background: rgba(56, 189, 248, 0.18);
       border-color: rgba(56, 189, 248, 0.5);
     }
     .commute-name { font-size: 0.74rem; font-weight: 700; }
@@ -192,7 +192,7 @@
     .modal-overlay.open { display: flex; }
 
     .modal-content {
-      width: 800px;
+      width: 820px;
       max-width: 94vw;
       background: rgba(15, 23, 42, 0.98);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -271,11 +271,11 @@
     /* Modal Mapy */
     .map-frame-wrapper {
       width: 100%;
-      height: 380px;
+      height: 400px;
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.15);
-      background: #000;
+      background: #111;
       margin-bottom: 12px;
     }
     .map-frame-wrapper iframe {
@@ -339,20 +339,20 @@
             <span id="commute-status" style="color: #38bdf8;">Na żywo</span>
           </div>
           
-          <div class="commute-row" onclick="handleCommuteClick('tsusho')">
+          <div class="commute-row" id="row-tsusho" tabindex="0">
             <div>
               <div class="commute-name">Tsusho Łęg 🗺️</div>
-              <div class="commute-sub">ul. Japońska 8 (przez WOW) • ~19 km</div>
+              <div class="commute-sub">ul. Japońska 8 (przez WOW) • 19.2 km</div>
             </div>
-            <div class="commute-time" id="time-tsusho">-- min</div>
+            <div class="commute-time" id="time-tsusho">20 min</div>
           </div>
 
-          <div class="commute-row" onclick="handleCommuteClick('koch')">
+          <div class="commute-row" id="row-koch" tabindex="0">
             <div>
               <div class="commute-name">Noir Handmade 🗺️</div>
-              <div class="commute-sub">Kochanowskiego 55a (przez Brucknera) • ~11 km</div>
+              <div class="commute-sub">Kochanowskiego 55a (przez Brucknera) • 11.4 km</div>
             </div>
-            <div class="commute-time" id="time-koch">-- min</div>
+            <div class="commute-time" id="time-koch">18 min</div>
           </div>
         </div>
 
@@ -527,19 +527,121 @@
     // 4. Dojazdy: Prawdziwe trasy i precyzyjne czasy
     var routesConfig = {
       tsusho: {
-        title: 'Trasa: Dom (Polna 74) ➔ Tsusho Łęg (ul. Japońska 8)',
+        title: 'Trasa: Kiełczów (Polna 74) ➔ Tsusho Łęg (ul. Japońska 8)',
         sub: 'Kiełczów (Polna 74) ➔ Wilczyce ➔ Wschodnia Obwodnica (WOW) ➔ Tsusho Łęg',
         dist: '19.2 km',
         baseMin: 20,
         rushMin: 26,
         timeElId: 'time-tsusho',
-        mapUrl: 'https://maps.google.com/maps?saddr=Polna+74,+Kie%C5%82cz%C3%B3w&daddr=Japo%C5%84ska+8,+%C5%81%C4%99g&output=embed'
+        // Lekka mapa OSM bez blokad iframe obejmująca całą trasę
+        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.1100%2C51.0200%2C17.3100%2C51.1700&layer=mapnik&marker=51.02685%2C17.27980'
       },
       koch: {
-        title: 'Trasa: Dom (Polna 74) ➔ Noir Handmade (Kochanowskiego 55a)',
-        sub: 'Kiełczów (Polna 74) ➔ Kiełczowska ➔ Sobieskiego ➔ Krzywoustego ➔ Kochanowskiego 55a',
+        title: 'Trasa: Kiełczów (Polna 74) ➔ Noir Handmade (Kochanowskiego 55a)',
+        sub: 'Kiełczów (Polna 74) ➔ Kiełczowska ➔ Sobieskiego ➔ Brucknera ➔ Kochanowskiego 55a',
         dist: '11.4 km',
         baseMin: 18,
         rushMin: 25,
         timeElId: 'time-koch',
-        mapUrl: '
+        // Lekka mapa OSM bez blokad iframe
+        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.0600%2C51.1100%2C17.1700%2C51.1680&layer=mapnik&marker=51.11982%2C17.07545'
+      }
+    };
+
+    function calculateRealCommuteTime(key) {
+      try {
+        var cfg = routesConfig[key];
+        var d = new Date();
+        var day = d.getDay(); // 0=Ndz, 1-5=Pn-Pt, 6=Sob
+        var hrs = d.getHours();
+        var mins = d.getMinutes();
+        var totalMinOfDay = hrs * 60 + mins;
+
+        // Domyślny czas płynnej jazdy
+        var calculatedTime = cfg.baseMin;
+
+        // Szczyt poranny tylko w dni robocze Pn-Pt (5:00 - 9:00)
+        if (day >= 1 && day <= 5 && hrs >= 5 && hrs < 9) {
+          if (totalMinOfDay >= 420 && totalMinOfDay <= 510) { // 7:00 - 8:30 (największe korki)
+            calculatedTime = cfg.rushMin;
+          } else if (totalMinOfDay >= 360 && totalMinOfDay < 420) { // 6:00 - 7:00
+            calculatedTime = cfg.rushMin - 2;
+          } else { // 5:00 - 6:00 i 8:30 - 9:00
+            calculatedTime = cfg.baseMin + 2;
+          }
+        }
+
+        var el = document.getElementById(cfg.timeElId);
+        if (el) el.textContent = calculatedTime + ' min';
+        cfg.lastCalculated = calculatedTime + ' min (' + cfg.dist + ')';
+      } catch (e) {}
+    }
+
+    function updateAllCommutes() {
+      calculateRealCommuteTime('tsusho');
+      calculateRealCommuteTime('koch');
+      var cur = new Date();
+      var statusEl = document.getElementById('commute-status');
+      if (statusEl) {
+        statusEl.textContent = 'Aktualne (' + String(cur.getHours()).padStart(2,'0') + ':' + String(cur.getMinutes()).padStart(2,'0') + ')';
+      }
+    }
+
+    function handleCommuteClick(key) {
+      var cfg = routesConfig[key];
+      calculateRealCommuteTime(key);
+      document.getElementById('route-modal-title').textContent = cfg.title;
+      document.getElementById('route-name-badge').textContent = 'Szacowany czas: ' + (cfg.lastCalculated || (cfg.baseMin + ' min (' + cfg.dist + ')'));
+      document.getElementById('route-sub-badge').textContent = cfg.sub;
+      document.getElementById('route-iframe').src = cfg.mapUrl;
+      document.getElementById('route-modal').classList.add('open');
+    }
+
+    // Bezpośrednie przypisanie zdarzeń click i keydown pod pilot TV
+    document.getElementById('row-tsusho').addEventListener('click', function() { handleCommuteClick('tsusho'); });
+    document.getElementById('row-tsusho').addEventListener('keydown', function(e) { if (e.key === 'Enter') handleCommuteClick('tsusho'); });
+
+    document.getElementById('row-koch').addEventListener('click', function() { handleCommuteClick('koch'); });
+    document.getElementById('row-koch').addEventListener('keydown', function(e) { if (e.key === 'Enter') handleCommuteClick('koch'); });
+
+    function closeModal(modalId) {
+      var modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('open');
+        if (modalId === 'route-modal') {
+          document.getElementById('route-iframe').src = 'about:blank';
+        }
+      }
+    }
+
+    function closeModalOnBg(e, modalId) {
+      if (e.target.id === modalId) closeModal(modalId);
+    }
+
+    // Start od razu przy wczytaniu
+    updateAllCommutes();
+    setInterval(updateAllCommutes, 60 * 1000);
+
+    // 5. Radio RAM
+    var aud = document.getElementById('audio');
+    var rBtn = document.getElementById('radio-btn');
+    var rSt = document.getElementById('r-status');
+
+    function toggleRadio() {
+      if (aud.paused) {
+        rSt.textContent = 'Łączenie...';
+        aud.play().then(function() {
+          rBtn.textContent = '❚❚';
+          rSt.textContent = 'Na żywo • 89.8 FM';
+        }).catch(function() {
+          rSt.textContent = 'Kliknij ponownie';
+        });
+      } else {
+        aud.pause();
+        rBtn.textContent = '▶';
+        rSt.textContent = 'Wstrzymano';
+      }
+    }
+  </script>
+</body>
+</html>
