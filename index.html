@@ -9,9 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-glass: rgba(15, 23, 42, 0.50);
-      --bg-card: rgba(15, 23, 42, 0.40);
-      --border-glass: rgba(255, 255, 255, 0.10);
+      --bg-glass: rgba(15, 23, 42, 0.55);
+      --bg-card: rgba(15, 23, 42, 0.45);
+      --border-glass: rgba(255, 255, 255, 0.12);
       --accent-blue: #38bdf8;
       --accent-green: #4ade80;
       --accent-yellow: #facc15;
@@ -24,35 +24,28 @@
     
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
       color: var(--text-main);
-      background-color: #0b0f19;
+      background: #0f172a url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85') center/cover no-repeat fixed;
       position: relative;
     }
 
-    .bg-layer {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85') center/cover no-repeat;
-      transition: opacity 1s ease-in-out;
-      z-index: 1;
-    }
     .bg-overlay {
-      position: absolute;
+      position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.25) 0%, rgba(11, 15, 25, 0.85) 100%);
-      z-index: 2;
+      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.35) 0%, rgba(11, 15, 25, 0.88) 100%);
+      z-index: 1;
+      pointer-events: none;
     }
 
     .dashboard-container {
       position: relative;
-      z-index: 3;
-      height: 100vh;
+      z-index: 2;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 1.8rem 2.8rem;
+      padding: 1.6rem 2.4rem;
       gap: 0.8rem;
     }
 
@@ -64,11 +57,95 @@
     }
     .clock-section { display: flex; align-items: baseline; gap: 1.2rem; }
     .clock-section h1 {
-      font-size: 3.6rem;
+      font-size: 3.5rem;
       font-weight: 800;
       letter-spacing: -2px;
       line-height: 1;
     }
     .clock-section p {
       font-size: 1.05rem;
-      color: var(--text-
+      color: var(--text-muted);
+      text-transform: capitalize;
+    }
+
+    .alert-box {
+      display: none;
+      background: rgba(239, 68, 68, 0.25);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+      padding: 0.4rem 0.9rem;
+      border-radius: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .weather-widget {
+      background: var(--bg-glass);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-glass);
+      border-radius: 0.9rem;
+      padding: 0.5rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .weather-icon { font-size: 2.2rem; line-height: 1; }
+    .weather-temp-box { text-align: right; }
+    .weather-temp {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      line-height: 1;
+    }
+    .weather-feels { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+    /* Środek: spłaszczone kafle */
+    .middle-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .compact-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 0.85fr;
+      gap: 0.85rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 0.9rem;
+      padding: 0.85rem 1.05rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Indeks Biegowy */
+    .running-verdict {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+    .running-desc {
+      font-size: 0.74rem;
+      color: #cbd5e1;
+      line-height: 1.25;
+      margin-top: 0.1
