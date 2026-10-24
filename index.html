@@ -305,10 +305,10 @@
       </div>
 
       <div class="weather-widget card">
-        <div class="w-icon">🌤️</div>
+        <div class="w-icon" id="w-icon">🌤️</div>
         <div>
-          <div class="w-temp">12°C</div>
-          <div class="w-feels">Odczuwalna: 11°C</div>
+          <div class="w-temp" id="w-temp">--°C</div>
+          <div class="w-feels" id="w-feels">Odczuwalna: --°C</div>
         </div>
       </div>
     </div>
@@ -320,14 +320,14 @@
         <div class="card c-pad">
           <div class="card-title">
             <span>🏃 Indeks Biegowy</span>
-            <span style="color: #4ade80;">PM2.5: Czysto</span>
+            <span id="run-status" style="color: #4ade80;">Kiełczów Live</span>
           </div>
-          <div class="run-verdict">Dobre warunki</div>
-          <div class="run-desc">Stabilna pogoda na wybieganie maratońskie.</div>
+          <div class="run-verdict" id="run-verdict">Sprawdzanie...</div>
+          <div class="run-desc" id="run-desc">Pobieranie warunków atmosferycznych.</div>
           <div class="metrics">
-            <div><div class="m-lbl">Wiatr / Porywy</div><div class="m-val">16 / 28 km/h</div></div>
-            <div><div class="m-lbl">Wilgotność</div><div class="m-val">60%</div></div>
-            <div><div class="m-lbl">Opady</div><div class="m-val">0.0 mm</div></div>
+            <div><div class="m-lbl">Wiatr / Porywy</div><div class="m-val" id="w-wind">-- / -- km/h</div></div>
+            <div><div class="m-lbl">Wilgotność</div><div class="m-val" id="w-humidity">--%</div></div>
+            <div><div class="m-lbl">Opady</div><div class="m-val" id="w-precip">0.0 mm</div></div>
           </div>
         </div>
 
@@ -443,7 +443,10 @@
 
   <script>
     // ------------------------------------------------------------------
-    // WPROWADZONY TWÓJ KLUCZ API TOMTOM:
+    // WSPÓŁRZĘDNE & KLUCZ TOMTOM:
+    var DOM_COORDS = [51.142935958072414, 17.190345703630012];
+    var TSUSHO_COORDS = [51.03529091964734, 17.290916081534256];
+    var NOIR_COORDS = [51.122948175552956, 17.07826835270448];
     var TOMTOM_KEY = 'KX5qRepXbYZUHX9vuKYyWzQxojJHmJNM';
     // ------------------------------------------------------------------
 
@@ -460,7 +463,75 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Kalendarz Tygodniowy
+    // 2. Pogoda Open-Meteo na żywo dla Kiełczowa (co 15 minut)
+    function weatherCodeToIcon(code) {
+      if (code === 0) return '☀️';
+      if (code === 1 || code === 2) return '🌤️';
+      if (code === 3) return '☁️';
+      if (code >= 45 && code <= 48) return '🌫️';
+      if (code >= 51 && code <= 67) return '🌧️';
+      if (code >= 71 && code <= 77) return '🌨️';
+      if (code >= 80 && code <= 82) return '🌦️';
+      if (code >= 95) return '⛈️';
+      return '🌤️';
+    }
+
+    function fetchWeatherData() {
+      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + DOM_COORDS[0] + '&longitude=' + DOM_COORDS[1] +
+        '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&timezone=auto';
+
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.current) {
+            var c = data.current;
+            var temp = Math.round(c.temperature_2m);
+            var feels = Math.round(c.apparent_temperature);
+            var wind = Math.round(c.wind_speed_10m);
+            var gusts = Math.round(c.wind_gusts_10m);
+            var humidity = c.relative_humidity_2m;
+            var precip = c.precipitation;
+            var icon = weatherCodeToIcon(c.weather_code);
+
+            // Aktualizacja widoku pogody
+            document.getElementById('w-temp').textContent = temp + '°C';
+            document.getElementById('w-feels').textContent = 'Odczuwalna: ' + feels + '°C';
+            document.getElementById('w-icon').textContent = icon;
+            document.getElementById('w-wind').textContent = wind + ' / ' + gusts + ' km/h';
+            document.getElementById('w-humidity').textContent = humidity + '%';
+            document.getElementById('w-precip').textContent = precip.toFixed(1) + ' mm';
+
+            // Inteligentna ocena indeksu biegowego
+            var verdictEl = document.getElementById('run-verdict');
+            var descEl = document.getElementById('run-desc');
+
+            if (precip > 2.0) {
+              verdictEl.textContent = 'Mocny deszcz';
+              verdictEl.style.color = '#f87171';
+              descEl.textContent = 'Intensywne opady – przyda się kurtka przeciwdeszczowa.';
+            } else if (gusts > 45) {
+              verdictEl.textContent = 'Bardzo silny wiatr';
+              verdictEl.style.color = '#fb923c';
+              descEl.textContent = 'Mocne porywy wiatru utrudniające rytm biegowy.';
+            } else if (temp < -2) {
+              verdictEl.textContent = 'Mróz';
+              verdictEl.style.color = '#38bdf8';
+              descEl.textContent = 'Śliska nawierzchnia – pamiętaj o dogrzaniu mięśni.';
+            } else if (temp >= 8 && temp <= 18 && gusts < 30) {
+              verdictEl.textContent = 'Idealne warunki';
+              verdictEl.style.color = '#4ade80';
+              descEl.textContent = 'Optymalna temperatura na akcent lub mocne wybieganie.';
+            } else {
+              verdictEl.textContent = 'Dobre warunki';
+              verdictEl.style.color = '#4ade80';
+              descEl.textContent = 'Stabilna pogoda na standardowy trening w tlenie.';
+            }
+          }
+        })
+        .catch(function() {});
+    }
+
+    // 3. Kalendarz Tygodniowy
     try {
       var daysNames = ['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
       var now = new Date();
@@ -478,7 +549,7 @@
       }
     } catch (e) {}
 
-    // 3. Kalendarz Miesięczny
+    // 4. Kalendarz Miesięczny
     var viewDate = new Date();
     function renderMonthCalendar() {
       try {
@@ -532,11 +603,7 @@
       renderMonthCalendar();
     }
 
-    // 4. Dojazdy TomTom Live Routing
-    var DOM_COORDS = [51.142935958072414, 17.190345703630012];
-    var TSUSHO_COORDS = [51.03529091964734, 17.290916081534256];
-    var NOIR_COORDS = [51.122948175552956, 17.07826835270448];
-
+    // 5. Dojazdy TomTom Live Routing
     var routesConfig = {
       tsusho: {
         title: 'Trasa: Dom ➔ Tsusho Łęg',
@@ -632,7 +699,6 @@
       L.marker(DOM_COORDS).bindPopup('<b>Dom</b>').addTo(leafletMarkersGroup);
       L.marker(cfg.destCoords).bindPopup('<b>' + cfg.destName + '</b>').addTo(leafletMarkersGroup);
 
-      // Rysowanie geometrii dróg TomTom
       if (cfg.lastData && cfg.lastData.points && cfg.lastData.points.length > 0) {
         var latLngs = cfg.lastData.points.map(function(pt) { return [pt.latitude, pt.longitude]; });
         L.polyline(latLngs, { color: '#38bdf8', weight: 4, opacity: 0.95 }).addTo(leafletMarkersGroup);
@@ -656,7 +722,6 @@
       document.getElementById('route-name-badge').textContent = 'Pobieranie aktualnej trasy z TomTom...';
       document.getElementById('route-modal').classList.add('open');
 
-      // Natychmiastowe odświeżenie danych z TomTom na kliknięcie i odrysowanie mapy
       fetchTomTomLiveRoute(key, function() {
         var badgeText = cfg.lastData.timeMin + ' min (' + cfg.lastData.distKm + ' km)';
         if (cfg.lastData.delayMin > 1) {
@@ -666,7 +731,6 @@
         renderTomTomMap(key);
       });
 
-      // Jeśli mamy już poprzednie punkty, renderujemy od razu bez czekania
       if (cfg.lastData) {
         renderTomTomMap(key);
       }
@@ -687,10 +751,15 @@
       if (e.target.id === modalId) closeModal(modalId);
     }
 
-    // 1. Start od razu przy włączeniu telewizora/dashboardu
+    // START PRZY URUCHOMIENIU TELEWIZORA:
+    fetchWeatherData();
     updateAllCommutes();
 
-    // 2. Odświeżanie codziennie (7 dni w tygodniu) w godzinach 5:00 - 9:00 co 5 minut
+    // CYKLICZNE ODŚWIEŻANIE:
+    // 1. Pogoda: co 15 minut (24/7)
+    setInterval(fetchWeatherData, 15 * 60 * 1000);
+
+    // 2. Dojazdy TomTom: codziennie w oknie 5:00 - 9:00 co 5 minut
     setInterval(function() {
       var d = new Date();
       var hrs = d.getHours();
@@ -699,7 +768,7 @@
       }
     }, 5 * 60 * 1000);
 
-    // 5. Radio RAM
+    // 6. Radio RAM
     var aud = document.getElementById('audio');
     var rBtn = document.getElementById('radio-btn');
     var rSt = document.getElementById('r-status');
