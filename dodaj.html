@@ -11,12 +11,13 @@
     
     header { background-color: #202c33; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); }
     .header-title { font-size: 1.1rem; font-weight: 700; color: #e9edef; }
+    .status-badge { font-size: 0.7rem; color: #00a884; font-weight: 600; }
     .clear-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.75rem; padding: 4px 10px; border-radius: 14px; font-weight: 600; cursor: pointer; }
 
     .list-container { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
     .item-pill { background: #202c33; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #00a884; }
-    .item-text { font-size: 0.95rem; color: #e9edef; }
-    .item-del { background: none; border: none; color: #8696a0; font-size: 1.2rem; cursor: pointer; padding: 0 4px; }
+    .item-text { font-size: 0.95rem; color: #e9edef; word-break: break-word; }
+    .item-del { background: none; border: none; color: #8696a0; font-size: 1.2rem; cursor: pointer; padding: 0 6px; }
 
     .empty-state { text-align: center; color: #8696a0; font-size: 0.85rem; margin-top: 40px; }
 
@@ -29,8 +30,11 @@
 <body>
 
   <header>
-    <div class="header-title">🛒 Tablica Kiełczów</div>
-    <button class="clear-btn" onclick="clearAll()">Wyczyść całość</button>
+    <div>
+      <div class="header-title">🛒 Tablica Kiełczów</div>
+      <div class="status-badge" id="net-status">Połączono</div>
+    </div>
+    <button class="clear-btn" onclick="clearAll()">Wyczyść</button>
   </header>
 
   <div class="list-container" id="list-box">
@@ -43,34 +47,43 @@
   </footer>
 
   <script>
-    var STORAGE_URL = 'https://api.jsonbin.io/v3/b/66205842ad19ca34f85be55d';
-    var STORAGE_KEY = '$2a$10$w1U4lD7vQxS.B4o7R27NiuV2f/OsuVomG2rWq6ZcI7t9gqg2qTz2i';
+    // Bezpośredni schowek npoint (brak wymogu dodatkowych nagłówków)
+    var ENDPOINT = 'https://api.npoint.io/e4e7eef1df5395642647';
     var currentItems = [];
 
-    function fetchNotes() {
-      fetch(STORAGE_URL + '/latest', {
-        headers: { 'X-Master-Key': STORAGE_KEY }
-      })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        currentItems = (data && data.record && Array.isArray(data.record.notes)) ? data.record.notes : [];
-        renderList();
-      })
-      .catch(function() {
-        renderList();
-      });
+    function setStatus(text, color) {
+      var s = document.getElementById('net-status');
+      s.textContent = text;
+      s.style.color = color;
     }
 
-    function saveNotes(callback) {
-      fetch(STORAGE_URL, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': STORAGE_KEY
-        },
+    function fetchNotes() {
+      setStatus('Synchronizacja...', '#38bdf8');
+      fetch(ENDPOINT)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          currentItems = Array.isArray(data.notes) ? data.notes : [];
+          renderList();
+          setStatus('Zsynchronizowano', '#00a884');
+        })
+        .catch(function(err) {
+          setStatus('Błąd pobierania', '#ef4444');
+        });
+    }
+
+    function saveNotes() {
+      setStatus('Zapisywanie...', '#fb923c');
+      fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: currentItems })
-      }).then(function() {
-        if (callback) callback();
+      })
+      .then(function(res) { return res.json(); })
+      .then(function() {
+        setStatus('Zapisano na TV', '#00a884');
+      })
+      .catch(function() {
+        setStatus('Błąd zapisu', '#ef4444');
       });
     }
 
@@ -97,7 +110,7 @@
       var val = inp.value.trim();
       if (!val) return;
 
-      currentItems.push(val);
+      currentItems.unshift(val); // Dodaje na samą górę
       inp.value = '';
       renderList();
       saveNotes();
@@ -110,7 +123,7 @@
     }
 
     function clearAll() {
-      if (confirm('Usunąć wszystkie notatki z telewizora?')) {
+      if (confirm('Usunąć wszystkie notatki?')) {
         currentItems = [];
         renderList();
         saveNotes();
