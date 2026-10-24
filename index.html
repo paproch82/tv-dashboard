@@ -9,11 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-glass: rgba(15, 23, 42, 0.68);
-      --border-glass: rgba(255, 255, 255, 0.12);
+      --bg-glass: rgba(15, 23, 42, 0.42);
+      --bg-glass-card: rgba(15, 23, 42, 0.35);
+      --border-glass: rgba(255, 255, 255, 0.10);
       --accent-blue: #38bdf8;
       --accent-green: #4ade80;
+      --accent-yellow: #facc15;
       --accent-orange: #fb923c;
+      --accent-purple: #c084fc;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -29,19 +32,19 @@
       position: relative;
     }
 
-    /* Tło z rotacją zdjęć */
+    /* Dynamiczne tapety w tle */
     .bg-layer {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       background-size: cover;
       background-position: center;
-      transition: opacity 1.5s ease-in-out;
+      transition: opacity 1.2s ease-in-out;
       z-index: 1;
     }
     .bg-overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at 80% 20%, rgba(15, 23, 42, 0.45) 0%, rgba(11, 15, 25, 0.88) 100%);
+      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.25) 0%, rgba(11, 15, 25, 0.75) 100%);
       z-index: 2;
     }
 
@@ -49,10 +52,11 @@
       position: relative;
       z-index: 3;
       height: 100vh;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      padding: 3rem 4rem;
-      gap: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2.2rem 3rem;
+      gap: 1.2rem;
     }
 
     /* Pasek górny */
@@ -61,172 +65,210 @@
       justify-content: space-between;
       align-items: center;
     }
+    .clock-section { display: flex; align-items: baseline; gap: 1.5rem; }
     .clock-section h1 {
-      font-size: 5rem;
+      font-size: 4.2rem;
       font-weight: 800;
       letter-spacing: -2px;
       line-height: 1;
     }
     .clock-section p {
-      font-size: 1.35rem;
+      font-size: 1.15rem;
       color: var(--text-muted);
-      margin-top: 0.4rem;
       text-transform: capitalize;
     }
 
     .weather-widget {
       background: var(--bg-glass);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(14px);
       border: 1px solid var(--border-glass);
-      border-radius: 1.5rem;
-      padding: 1.25rem 2.25rem;
+      border-radius: 1.1rem;
+      padding: 0.8rem 1.6rem;
       display: flex;
       align-items: center;
-      gap: 2rem;
+      gap: 1.2rem;
     }
+    .weather-icon { font-size: 2.8rem; line-height: 1; }
+    .weather-temp-box { text-align: right; }
     .weather-temp {
-      font-size: 3.5rem;
+      font-size: 2.4rem;
       font-weight: 700;
       color: var(--accent-blue);
       line-height: 1;
     }
-    .weather-meta {
-      text-align: right;
-    }
-    .weather-meta .loc { font-size: 1.25rem; font-weight: 600; }
-    .weather-meta .details { font-size: 0.95rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .weather-feels { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; }
 
-    /* Sekcja środkowa: siatka kart */
+    /* Alert pogodowy */
+    .weather-alert {
+      display: none;
+      background: rgba(239, 68, 68, 0.25);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+      padding: 0.4rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Siatka Główna (mniejsze karty) */
     .main-grid {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr;
-      gap: 1.5rem;
+      grid-template-columns: 1.1fr 0.9fr 1fr 1fr;
+      gap: 1.1rem;
+      flex: 1;
       align-items: stretch;
+      min-height: 0;
     }
 
     .card {
-      background: var(--bg-glass);
-      backdrop-filter: blur(20px);
+      background: var(--bg-glass-card);
+      backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
-      border-radius: 1.5rem;
-      padding: 1.75rem;
+      border-radius: 1.1rem;
+      padding: 1.2rem;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
     .card-title {
-      font-size: 1rem;
+      font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: space-between;
     }
 
-    /* Moduł Biegowy */
-    .running-status {
-      display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-    .running-badge {
-      font-size: 1.4rem;
+    /* Karta 1: Biegacz & Smog */
+    .running-verdict {
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--accent-green);
+      margin-bottom: 0.3rem;
     }
     .running-desc {
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      line-height: 1.4;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.35;
     }
-    .running-metrics {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid rgba(255,255,255,0.08);
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.8rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
-    .metric { flex: 1; }
-    .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    .metric-val { font-size: 1.1rem; font-weight: 600; margin-top: 0.2rem; }
+    .m-item .m-lbl { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; }
+    .m-item .m-val { font-size: 0.92rem; font-weight: 600; margin-top: 0.15rem; }
 
-    /* Moduł Dojazdów */
-    .commute-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    /* Karta 2: Dojazdy */
+    .commute-list { display: flex; flex-direction: column; gap: 0.65rem; }
     .commute-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1rem;
-      background: rgba(255,255,255,0.04);
-      border-radius: 0.75rem;
-      border: 1px solid rgba(255,255,255,0.05);
+      padding: 0.65rem 0.8rem;
+      background: rgba(255,255,255,0.03);
+      border-radius: 0.65rem;
+      border: 1px solid rgba(255,255,255,0.04);
     }
-    .commute-dest { font-weight: 600; font-size: 1rem; }
-    .commute-sub { font-size: 0.8rem; color: var(--text-muted); }
-    .commute-badge {
+    .commute-name { font-weight: 600; font-size: 0.85rem; }
+    .commute-via { font-size: 0.72rem; color: var(--text-muted); }
+    .commute-time {
       font-weight: 700;
       font-size: 0.95rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 0.5rem;
-      background: rgba(56, 189, 248, 0.15);
       color: var(--accent-blue);
+      text-align: right;
     }
 
-    /* Agenda / Skróty */
-    .agenda-item {
-      padding: 0.75rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+    /* Karta 3: Kalendarz / Wydarzenia */
+    .calendar-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .cal-event {
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.02);
+      border-left: 3px solid var(--accent-blue);
     }
-    .agenda-item:last-child { border: none; }
-    .agenda-time { font-size: 0.85rem; color: var(--accent-orange); font-weight: 600; }
-    .agenda-text { font-size: 0.95rem; font-weight: 500; margin-top: 0.2rem; }
+    .cal-event.nat { border-left-color: var(--accent-purple); }
+    .cal-time { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    .cal-text { font-size: 0.82rem; font-weight: 600; margin-top: 0.15rem; }
 
-    /* Dolny pasek kontrolny */
+    /* Karta 4: Tablica na szybko & Televizo */
+    .quick-notes {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    .note-bubble {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 0.6rem;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.8rem;
+      color: #e2e8f0;
+    }
+    .note-author { font-size: 0.68rem; font-weight: 700; color: var(--accent-orange); margin-bottom: 0.15rem; }
+    .televizo-btn {
+      margin-top: 0.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--accent-blue);
+      padding: 0.6rem;
+      border-radius: 0.65rem;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .televizo-btn:hover { background: rgba(56, 189, 248, 0.25); }
+
+    /* Dolny pasek */
     .bottom-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--bg-glass);
-      backdrop-filter: blur(24px);
+      backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
-      border-radius: 1.5rem;
-      padding: 1rem 2rem;
+      border-radius: 1.1rem;
+      padding: 0.65rem 1.6rem;
     }
     .radio-box {
       display: flex;
       align-items: center;
-      gap: 1.25rem;
+      gap: 1rem;
     }
     .play-btn {
-      width: 52px;
-      height: 52px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       border: none;
       background: var(--accent-blue);
       color: #0b0f19;
-      font-size: 1.3rem;
+      font-size: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.2s, background 0.2s;
     }
-    .play-btn:hover, .play-btn:focus {
-      transform: scale(1.08);
-      background: #7dd3fc;
-      outline: none;
-    }
-    .radio-meta h4 { font-size: 1.1rem; font-weight: 700; }
-    .radio-meta p { font-size: 0.85rem; color: var(--text-muted); }
+    .radio-meta h4 { font-size: 0.95rem; font-weight: 700; }
+    .radio-meta p { font-size: 0.75rem; color: var(--text-muted); }
 
-    .location-tag {
-      font-size: 0.85rem;
+    .tag-location {
+      font-size: 0.75rem;
       color: var(--text-muted);
-      letter-spacing: 0.05em;
     }
   </style>
 </head>
@@ -240,103 +282,139 @@
     <div class="top-bar">
       <div class="clock-section">
         <h1 id="clock">--:--</h1>
-        <p id="date">Ładowanie daty...</p>
+        <p id="date">Ładowanie...</p>
       </div>
+
+      <div class="weather-alert" id="weather-alert">
+        ⚠️ <span id="alert-text">Alert pogodowy dla Kiełczowa</span>
+      </div>
+
       <div class="weather-widget">
-        <div class="weather-temp" id="temp">--°C</div>
-        <div class="weather-meta">
-          <div class="loc">Kiełczów / Wrocław</div>
-          <div class="details" id="weather-meta">Wilgotność: --% • Wiatr: -- km/h</div>
+        <div class="weather-icon" id="weather-icon">🌤️</div>
+        <div class="weather-temp-box">
+          <div class="weather-temp" id="temp">--°C</div>
+          <div class="weather-feels" id="temp-feels">Odczuwalna: --°C</div>
         </div>
       </div>
     </div>
 
-    <!-- Siatka Główna -->
+    <!-- Siatka Główna (Mniejsze karty) -->
     <div class="main-grid">
-      <!-- Karta 1: Indeks Biegowy -->
+      <!-- 1. Biegacz & Smog (Kiełczów) -->
       <div class="card">
         <div>
-          <div class="card-title">🏃 Warunki Treningowe (10k / Maraton)</div>
-          <div class="running-status">
-            <span class="running-badge" id="run-verdict">Analiza...</span>
+          <div class="card-title">
+            <span>🏃 Indeks Biegowy</span>
+            <span style="color: var(--text-muted); font-size: 0.7rem;">Kiełczów</span>
           </div>
-          <p class="running-desc" id="run-suggestion">Pobieranie aktualnych warunków atmosferycznych...</p>
+          <div class="running-verdict" id="run-verdict">Analiza warunków...</div>
+          <p class="running-desc" id="run-desc">Sprawdzanie wiatru, wilgotności i temperatury odczuwalnej.</p>
         </div>
-        <div class="running-metrics">
-          <div class="metric">
-            <div class="metric-label">Porywy wiatru</div>
-            <div class="metric-val" id="run-gusts">-- km/h</div>
+        <div class="metrics-grid">
+          <div class="m-item">
+            <div class="m-lbl">Wiatr / Porywy</div>
+            <div class="m-val" id="run-wind">-- km/h</div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Opady (h)</div>
-            <div class="metric-val" id="run-precip">0 mm</div>
+          <div class="m-item">
+            <div class="m-lbl">Smog (PM2.5)</div>
+            <div class="m-val" id="smog-val" style="color: var(--accent-green);">Czysto (8 µg)</div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Jakość pow.</div>
-            <div class="metric-val" style="color: var(--accent-green);">Dobra</div>
+          <div class="m-item">
+            <div class="m-lbl">Wilgotność</div>
+            <div class="m-val" id="run-humidity">--%</div>
+          </div>
+          <div class="m-item">
+            <div class="m-lbl">Opady</div>
+            <div class="m-val" id="run-rain">0.0 mm</div>
           </div>
         </div>
       </div>
 
-      <!-- Karta 2: Trasy & Dojazdy -->
+      <!-- 2. Dojazdy z Kiełczowa -->
       <div class="card">
-        <div class="card-title">🚗 Trasy & Tranzyt</div>
+        <div class="card-title">🚗 Czasy Dojazdu</div>
         <div class="commute-list">
           <div class="commute-item">
             <div>
-              <div class="commute-dest">WOW / Łany</div>
-              <div class="commute-sub">Kiełczów ➔ Rondo Łany</div>
+              <div class="commute-name">Tsusho Łęg</div>
+              <div class="commute-via">przez WOW / Wschodnią Obwodnicę</div>
             </div>
-            <div class="commute-badge">Płynnie</div>
+            <div>
+              <div class="commute-time">~18 min</div>
+            </div>
           </div>
           <div class="commute-item">
             <div>
-              <div class="commute-dest">Bielany / Tsusho</div>
-              <div class="commute-sub">AOW / S8 / Karkonoska</div>
+              <div class="commute-name">Kochanowskiego 55a</div>
+              <div class="commute-via">przez Krzywoustego / Brucknera</div>
             </div>
-            <div class="commute-badge">Standard</div>
+            <div>
+              <div class="commute-time">~16 min</div>
+            </div>
           </div>
           <div class="commute-item">
             <div>
-              <div class="commute-dest">Centrum (Pl. Grunwaldzki)</div>
-              <div class="commute-sub">przez Bolesława Krzywoustego</div>
+              <div class="commute-name">Plac Grunwaldzki</div>
+              <div class="commute-via">przez Kochanowskiego</div>
             </div>
-            <div class="commute-badge">Umiarkowany</div>
+            <div>
+              <div class="commute-time">~22 min</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Karta 3: Plan & Aktywność -->
+      <!-- 3. Kalendarz & Wspólne Wydarzenia -->
       <div class="card">
-        <div class="card-title">📅 Aktywność & Plan</div>
-        <div class="agenda-item">
-          <div class="agenda-time">TRENING DZIŚ</div>
-          <div class="agenda-text">Rozbieganie Easy + 6x przebieżki 100m</div>
+        <div class="card-title">📅 Kalendarz Wspólny</div>
+        <div class="calendar-list">
+          <div class="cal-event">
+            <div class="cal-time">DZIŚ • 17:30</div>
+            <div class="cal-text">Trening biegowy: Akcent progowy</div>
+          </div>
+          <div class="cal-event nat">
+            <div class="cal-time">JUTRO • 11:00</div>
+            <div class="cal-text">Wypad / Kawa & Zakupy (z Nat)</div>
+          </div>
+          <div class="cal-event">
+            <div class="cal-time">NIEDZIELA • 09:00</div>
+            <div class="cal-text">Długie wybieganie (Long Run 24 km)</div>
+          </div>
         </div>
-        <div class="agenda-item">
-          <div class="agenda-time">WEEKEND</div>
-          <div class="agenda-text">Długie wybieganie (Long Run) w tlenie</div>
+      </div>
+
+      <!-- 4. Tablica Na Szybko & Televizo -->
+      <div class="card">
+        <div class="card-title">📌 Tablica Na Szybko</div>
+        <div class="quick-notes">
+          <div class="note-bubble">
+            <div class="note-author">NAT</div>
+            <div>Kupić mleko owsiane i odebrać paczkomat przy Biedronce.</div>
+          </div>
+          <div class="note-bubble">
+            <div class="note-author">JA</div>
+            <div>Sprawdzić naciąg szprych / żele na niedzielne wybieganie.</div>
+          </div>
         </div>
-        <div class="agenda-item">
-          <div class="agenda-time">EXPEDITION STATUS</div>
-          <div class="agenda-text" style="color: var(--accent-blue);">Patagonia Dec 2026 • Przygotowania</div>
-        </div>
+        <a class="televizo-btn" href="intent:#Intent;component=com.alex.televizo/.ui.player.PlayerActivity;end" onclick="alert('Uruchamianie Televizo IPTV...')">
+          📺 Kontynuuj w Televizo
+        </a>
       </div>
     </div>
 
-    <!-- Dolny Pasek: Radio i Tło -->
+    <!-- Pasek Dolny: Radio RAM & Lokalizacja Tapety -->
     <div class="bottom-bar">
       <div class="radio-box">
         <button class="play-btn" id="radio-btn" onclick="toggleRadio()">▶</button>
         <div class="radio-meta">
           <h4>Radio RAM 89.8 FM</h4>
-          <p id="radio-status">Wrocław na fali • Gotowe do odsłuchu</p>
+          <p id="radio-status">Wrocław • Kliknij, aby włączyć</p>
         </div>
         <audio id="audio-stream" src="https://stream.radioram.pl:8000/ram_mp3" preload="none"></audio>
       </div>
 
-      <div class="location-tag" id="photo-label">
-        Tapeta: Cerro Fitz Roy, Patagonia
+      <div class="tag-location" id="wallpaper-tag">
+        📍 Karkonosze: Kocioł Łomniczki & Śnieżka
       </div>
     </div>
   </div>
@@ -355,81 +433,116 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Rotacja Tapet (Patagonia / Karkonosze)
+    // Dynamiczne tapety Hi-Res (Karkonosze, Tatry, Góry Stołowe, Patagonia)
     const wallpapers = [
-      { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80', label: 'Cerro Fitz Roy, Patagonia' },
-      { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80', label: 'Śnieżka / Karkonosze o świcie' },
-      { url: 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190?auto=format&fit=crop&w=1920&q=80', label: 'Torres del Paine, Patagonia' }
+      { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85', label: '📍 Patagonia: Cerro Fitz Roy' },
+      { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2560&q=85', label: '📍 Karkonosze: Grzbiet o wschodzie słońca' },
+      { url: 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190?auto=format&fit=crop&w=2560&q=85', label: '📍 Patagonia: Laguna Amarga & Cuernos' },
+      { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2560&q=85', label: '📍 Tatry Wysokie: Granity o poranku' },
+      { url: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=2560&q=85', label: '📍 Góry Stołowe: Labirynty i Błędne Skały' }
     ];
-    let wpIdx = 0;
+    let wpIndex = 0;
     const bgLayer = document.getElementById('bg-layer');
-    const photoLabel = document.getElementById('photo-label');
+    const wpTag = document.getElementById('wallpaper-tag');
 
-    function rotateWallpaper() {
+    function changeWallpaper() {
       bgLayer.style.opacity = '0';
       setTimeout(() => {
-        bgLayer.style.backgroundImage = `url('${wallpapers[wpIdx].url}')`;
-        photoLabel.textContent = `Tapeta: ${wallpapers[wpIdx].label}`;
+        bgLayer.style.backgroundImage = `url('${wallpapers[wpIndex].url}')`;
+        wpTag.textContent = wallpapers[wpIndex].label;
         bgLayer.style.opacity = '1';
-        wpIdx = (wpIdx + 1) % wallpapers.length;
-      }, 1000);
+        wpIndex = (wpIndex + 1) % wallpapers.length;
+      }, 900);
     }
-    rotateWallpaper();
-    setInterval(rotateWallpaper, 60000); // zmiana co minutę
+    changeWallpaper();
+    setInterval(changeWallpaper, 45000); // zmiana co 45 sekund
 
-    // Pobieranie Pogody dla Kiełczowa (Open-Meteo)
-    async function fetchWeather() {
+    // Pogoda Open-Meteo + Indeks Biegowy dla Kiełczowa
+    async function loadWeatherData() {
       try {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.1378&longitude=17.1539&current_weather=true&hourly=relativehumidity_2m,precipitation');
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=51.1378&longitude=17.1539&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&hourly=pm2_5&timezone=Europe%2FWarsaw';
+        const res = await fetch(url);
         const data = await res.json();
-        const cur = data.current_weather;
-        const temp = Math.round(cur.temperature);
-        const wind = Math.round(cur.windspeed);
+        const cur = data.current;
+
+        const temp = Math.round(cur.temperature_2m);
+        const feels = Math.round(cur.apparent_temperature);
+        const wind = Math.round(cur.wind_speed_10m);
+        const gusts = Math.round(cur.wind_gusts_10m);
+        const hum = Math.round(cur.relative_humidity_2m);
+        const rain = cur.precipitation;
+        const code = cur.weather_code;
 
         document.getElementById('temp').textContent = `${temp}°C`;
-        document.getElementById('weather-meta').textContent = `Wiatr: ${wind} km/h • Kiełczów`;
-        document.getElementById('run-gusts').textContent = `${wind} km/h`;
+        document.getElementById('temp-feels').textContent = `Odczuwalna: ${feels}°C`;
+        document.getElementById('run-wind').textContent = `${wind} / ${gusts} km/h`;
+        document.getElementById('run-humidity').textContent = `${hum}%`;
+        document.getElementById('run-rain').textContent = `${rain} mm`;
 
-        // Ocena warunków biegowych
+        // Ikona pogody
+        const iconEl = document.getElementById('weather-icon');
+        if (code === 0) iconEl.textContent = '☀️';
+        else if (code >= 1 && code <= 3) iconEl.textContent = '🌤️';
+        else if (code >= 45 && code <= 48) iconEl.textContent = '🌫️';
+        else if (code >= 51 && code <= 67) iconEl.textContent = '🌧️';
+        else if (code >= 71 && code <= 77) iconEl.textContent = '❄️';
+        else if (code >= 80 && code <= 82) iconEl.textContent = '🌦️';
+        else if (code >= 95) iconEl.textContent = '⛈️';
+        else iconEl.textContent = '☁️';
+
+        // Alert pogodowy
+        const alertBox = document.getElementById('weather-alert');
+        const alertTxt = document.getElementById('alert-text');
+        if (gusts >= 50) {
+          alertBox.style.display = 'flex';
+          alertTxt.textContent = `Porywy wiatru do ${gusts} km/h w Kiełczowie!`;
+        } else if (temp <= -5) {
+          alertBox.style.display = 'flex';
+          alertTxt.textContent = 'Ostrzeżenie przed silnym mrozem i oblodzeniem';
+        } else {
+          alertBox.style.display = 'none';
+        }
+
+        // Ocena biegowa
         const verdict = document.getElementById('run-verdict');
-        const desc = document.getElementById('run-suggestion');
-
-        if (temp >= 7 && temp <= 16 && wind < 20) {
+        const desc = document.getElementById('run-desc');
+        if (feels >= 8 && feels <= 16 && gusts < 22 && rain === 0) {
           verdict.textContent = 'Idealne pod tempo';
           verdict.style.color = 'var(--accent-green)';
-          desc.textContent = 'Temperatura w strefie komfortu termicznego. Perfekcyjna sesja na tempo progowe lub interwały.';
-        } else if (temp < 0 || wind >= 30) {
+          desc.textContent = 'Optymalna temperatura i brak wiatru. Najlepsza pora na tempo progowe lub interwały.';
+        } else if (gusts >= 35 || rain > 2 || feels < -3) {
           verdict.textContent = 'Trudne warunki';
           verdict.style.color = '#f87171';
-          desc.textContent = 'Silny wiatr lub niska temperatura. Postaw na spokojne rozbieganie EASY i osłonięte trasy leśne.';
+          desc.textContent = 'Duży opór wiatru lub niska odczuwalna. Zrób spokojne rozbieganie EASY w lesie.';
         } else {
           verdict.textContent = 'Dobre warunki';
-          verdict.style.color = '#facc15';
-          desc.textContent = 'Standardowe warunki treningowe. Dobry moment na realizację planu maratońskiego.';
+          verdict.style.color = 'var(--accent-yellow)';
+          desc.textContent = 'Dobre warunki pod długie wybieganie. Dobierz odpowiednią warstwę termo.';
         }
+
       } catch (err) {
-        document.getElementById('run-verdict').textContent = 'Błąd danych';
+        console.error(err);
       }
     }
-    fetchWeather();
-    setInterval(fetchWeather, 600000);
+    loadWeatherData();
+    setInterval(loadWeatherData, 300000); // odświeżanie co 5 minut
 
-    // Odtwarzacz Radia RAM
+    // Radio RAM
     const audio = document.getElementById('audio-stream');
-    const playBtn = document.getElementById('radio-btn');
+    const radioBtn = document.getElementById('radio-btn');
     const radioStatus = document.getElementById('radio-status');
 
     function toggleRadio() {
       if (audio.paused) {
         audio.play().then(() => {
-          playBtn.textContent = '❚❚';
-          radioStatus.textContent = 'Audycja na żywo • 89.8 FM';
+          radioBtn.textContent = '❚❚';
+          radioStatus.textContent = 'Na żywo we Wrocławiu • 89.8 FM';
         }).catch(() => {
-          radioStatus.textContent = 'Kliknij ponownie, aby odtworzyć';
+          radioStatus.textContent = 'Błąd odtwarzania streamu';
         });
       } else {
         audio.pause();
-        playBtn.textContent = '▶';
+        radioBtn.textContent = '▶';
         radioStatus.textContent = 'Wstrzymano';
       }
     }
