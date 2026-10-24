@@ -97,7 +97,7 @@
       color: #e2e8f0;
     }
 
-    /* Kalendarz Tygodniowy */
+    /* Kalendarz */
     .week-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -137,8 +137,8 @@
     .b-left { display: flex; align-items: center; gap: 20px; }
     .radio-unit { display: flex; align-items: center; gap: 10px; }
     .r-btn {
-      width: 32px; height: 32px; border-radius: 50%; border: none;
-      background: #38bdf8; color: #0b0f19; font-size: 0.85rem;
+      width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: #38bdf8; color: #0b0f19; font-size: 0.9rem;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
     .r-meta h4 { font-size: 0.82rem; font-weight: 700; }
@@ -148,12 +148,15 @@
       background: rgba(56, 189, 248, 0.15);
       border: 1px solid rgba(56, 189, 248, 0.35);
       color: #38bdf8;
-      padding: 6px 12px;
+      padding: 7px 14px;
       border-radius: 8px;
-      font-size: 0.74rem;
+      font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
+    .tv-btn:hover { background: rgba(56, 189, 248, 0.25); }
 
     .tag { font-size: 0.7rem; color: #94a3b8; }
   </style>
@@ -244,12 +247,13 @@
           <h4>Radio RAM 89.8 FM</h4>
           <p id="r-status">Wrocław • Kliknij, aby włączyć</p>
         </div>
-        <audio id="audio" src="https://stream.radioram.pl:8000/ram_mp3" preload="none"></audio>
+        <audio id="audio" src="https://stream.radioram.pl/ram" preload="none"></audio>
       </div>
 
-      <button class="tv-btn" onclick="alert('Uruchamianie Televizo IPTV...')">
-        📺 Kontynuuj w Televizo
-      </button>
+      <!-- Przycisk Televizo -->
+      <a class="tv-btn" href="https://televizo.net" target="_blank" id="tv-action-btn">
+        📺 Otwórz Televizo
+      </a>
     </div>
 
     <div class="tag" id="tag">📍 Patagonia: Cerro Fitz Roy</div>
@@ -294,13 +298,21 @@
       document.getElementById('tag').textContent = wp[wIdx].tag;
     }, 45000);
 
-    // Radio
+    // Obsługa radia z logowaniem błędów
     const aud = document.getElementById('audio');
     const rBtn = document.getElementById('radio-btn');
     const rSt = document.getElementById('r-status');
+
     function toggleRadio() {
       if (aud.paused) {
-        aud.play().then(() => { rBtn.textContent = '❚❚'; rSt.textContent = 'Na żywo • 89.8 FM'; }).catch(() => {});
+        rSt.textContent = 'Łączenie...';
+        aud.play().then(() => {
+          rBtn.textContent = '❚❚';
+          rSt.textContent = 'Na żywo • 89.8 FM';
+        }).catch((err) => {
+          console.error("Błąd odtwarzania:", err);
+          rSt.textContent = 'Błąd strumienia (kliknij ponownie)';
+        });
       } else {
         aud.pause();
         rBtn.textContent = '▶';
