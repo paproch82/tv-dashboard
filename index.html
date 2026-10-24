@@ -44,7 +44,7 @@
     .clock-box h1 { font-size: 2.6rem; font-weight: 800; line-height: 1; }
     .clock-box p { font-size: 0.95rem; color: #94a3b8; text-transform: capitalize; }
 
-    /* Klikalny widget pogody */
+    /* Klikalny kafel pogody */
     .weather-widget {
       padding: 6px 14px;
       display: flex;
@@ -53,10 +53,11 @@
       cursor: pointer;
       border: 1px solid rgba(255, 255, 255, 0.14);
       transition: all 0.15s ease;
+      outline: none;
     }
     .weather-widget:hover, .weather-widget:focus {
-      background: rgba(56, 189, 248, 0.18);
-      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.22);
+      border-color: rgba(56, 189, 248, 0.6);
     }
     .w-icon { font-size: 1.8rem; }
     .w-temp { font-size: 1.6rem; font-weight: 700; color: #38bdf8; text-align: right; line-height: 1; }
@@ -110,6 +111,7 @@
       cursor: pointer;
       border: 1px solid transparent;
       transition: all 0.15s ease;
+      outline: none;
     }
     .commute-row:hover, .commute-row:focus {
       background: rgba(56, 189, 248, 0.18);
@@ -301,7 +303,7 @@
     .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
     .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
 
-    /* Modal Prognozy Pogody (4 Dni) */
+    /* Modal Prognozy Pogody */
     .forecast-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -368,8 +370,8 @@
         <p id="date">Ładowanie daty...</p>
       </div>
 
-      <!-- Kafel pogody z obsługą kliknięcia -->
-      <div class="weather-widget card" id="weather-btn" tabindex="0" title="Kliknij, aby zobaczyć prognozę 4-dniową">
+      <!-- Kafel pogody z bezpośrednim onclick i onkeydown -->
+      <div class="weather-widget card" id="weather-btn" tabindex="0" onclick="openWeatherModal()" onkeydown="if(event.key==='Enter') openWeatherModal()">
         <div class="w-icon" id="w-icon">🌤️</div>
         <div>
           <div class="w-temp" id="w-temp">--°C</div>
@@ -403,7 +405,7 @@
             <span id="commute-status" style="color: #38bdf8;">Ładowanie TomTom...</span>
           </div>
           
-          <div class="commute-row" id="row-tsusho" tabindex="0">
+          <div class="commute-row" id="row-tsusho" tabindex="0" onclick="handleCommuteClick('tsusho')" onkeydown="if(event.key==='Enter') handleCommuteClick('tsusho')">
             <div>
               <div class="commute-name">Tsusho Łęg 🗺️</div>
               <div class="commute-sub" id="sub-tsusho">ul. Japońska • przez WOW</div>
@@ -414,7 +416,7 @@
             </div>
           </div>
 
-          <div class="commute-row" id="row-koch" tabindex="0">
+          <div class="commute-row" id="row-koch" tabindex="0" onclick="handleCommuteClick('koch')" onkeydown="if(event.key==='Enter') handleCommuteClick('koch')">
             <div>
               <div class="commute-name">Noir Handmade 🗺️</div>
               <div class="commute-sub" id="sub-koch">Kochanowskiego 55a • przez Brucknera</div>
@@ -515,7 +517,9 @@
       </div>
 
       <div class="forecast-grid" id="forecast-container">
-        <!-- Generowane automatycznie przez JS -->
+        <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">
+          Ładowanie prognozy pogody...
+        </div>
       </div>
     </div>
   </div>
@@ -542,7 +546,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Pogoda Open-Meteo (Aktualna + Prognoza 4-Dniowa)
+    // 2. Pogoda Open-Meteo
     var forecastDailyData = null;
 
     function weatherCodeToInfo(code) {
@@ -612,22 +616,28 @@
 
           if (data && data.daily) {
             forecastDailyData = data.daily;
+            // Jeśli modal jest otwarty w trakcie pobierania, natychmiast go wypełnij
+            var modal = document.getElementById('weather-modal');
+            if (modal && modal.classList.contains('open')) {
+              renderWeatherModal();
+            }
           }
         })
         .catch(function() {});
     }
 
-    // Modal prognozy 4-dniowej
     function renderWeatherModal() {
-      if (!forecastDailyData) return;
-
       var container = document.getElementById('forecast-container');
-      container.innerHTML = '';
+      if (!forecastDailyData) {
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">Ładowanie aktualnej prognozy...</div>';
+        return;
+      }
 
+      container.innerHTML = '';
       var titles = ['Dziś', 'Jutro', 'Pojutrze', 'Popojutrze'];
 
       for (var i = 0; i < 4; i++) {
-        var dateRaw = forecastDailyData.time[i]; // YYYY-MM-DD
+        var dateRaw = forecastDailyData.time[i];
         var parts = dateRaw.split('-');
         var dateFormatted = parts[2] + '.' + parts[1];
 
@@ -661,16 +671,12 @@
     }
 
     function openWeatherModal() {
-      renderWeatherModal();
       document.getElementById('weather-modal').classList.add('open');
+      renderWeatherModal();
+      if (!forecastDailyData) {
+        fetchWeatherData();
+      }
     }
-
-    // Przypisanie kliknięcia do kafelka pogody
-    var wBtn = document.getElementById('weather-btn');
-    wBtn.addEventListener('click', openWeatherModal);
-    wBtn.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') openWeatherModal();
-    });
 
     // 3. Kalendarz Tygodniowy
     try {
@@ -819,7 +825,7 @@
       }
     }
 
-    // Leaflet: Mapa rysująca trasę wyznaczoną przez TomTom
+    // Leaflet: Mapa rysująca trasę TomTom
     var leafletMapInstance = null;
     var leafletMarkersGroup = null;
 
@@ -877,12 +883,6 @@
       }
     }
 
-    document.getElementById('row-tsusho').addEventListener('click', function() { handleCommuteClick('tsusho'); });
-    document.getElementById('row-tsusho').addEventListener('keydown', function(e) { if (e.key === 'Enter') handleCommuteClick('tsusho'); });
-
-    document.getElementById('row-koch').addEventListener('click', function() { handleCommuteClick('koch'); });
-    document.getElementById('row-koch').addEventListener('keydown', function(e) { if (e.key === 'Enter') handleCommuteClick('koch'); });
-
     function closeModal(modalId) {
       var modal = document.getElementById(modalId);
       if (modal) modal.classList.remove('open');
@@ -897,10 +897,8 @@
     updateAllCommutes();
 
     // CYKLICZNE ODŚWIEŻANIE:
-    // 1. Pogoda: co 15 minut (24/7)
     setInterval(fetchWeatherData, 15 * 60 * 1000);
 
-    // 2. Dojazdy TomTom: codziennie w oknie 5:00 - 9:00 co 5 minut
     setInterval(function() {
       var d = new Date();
       var hrs = d.getHours();
