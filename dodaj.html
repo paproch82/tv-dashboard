@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tablica Domowa</title>
+  <meta name="theme-color" content="#0b141a">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b141a; color: #e9edef; display: flex; flex-direction: column; height: 100vh; }
+    
+    header { background-color: #202c33; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .header-title { font-size: 1.1rem; font-weight: 700; color: #e9edef; }
+    .clear-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.75rem; padding: 4px 10px; border-radius: 14px; font-weight: 600; cursor: pointer; }
+
+    .list-container { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .item-pill { background: #202c33; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #00a884; }
+    .item-text { font-size: 0.95rem; color: #e9edef; }
+    .item-del { background: none; border: none; color: #8696a0; font-size: 1.2rem; cursor: pointer; padding: 0 4px; }
+
+    .empty-state { text-align: center; color: #8696a0; font-size: 0.85rem; margin-top: 40px; }
+
+    footer { background-color: #202c33; padding: 10px 12px; display: flex; gap: 8px; align-items: center; }
+    input { flex: 1; background: #2a3942; border: none; outline: none; color: #e9edef; padding: 12px 16px; border-radius: 20px; font-size: 1rem; }
+    input::placeholder { color: #8696a0; }
+    .send-btn { background: #00a884; color: #111b21; border: none; outline: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">🛒 Tablica Kiełczów</div>
+    <button class="clear-btn" onclick="clearAll()">Wyczyść całość</button>
+  </header>
+
+  <div class="list-container" id="list-box">
+    <div class="empty-state">Ładowanie notatek...</div>
+  </div>
+
+  <footer>
+    <input type="text" id="note-input" placeholder="Wpisz rzecz lub notatkę..." autofocus onkeydown="if(event.key==='Enter') addItem()">
+    <button class="send-btn" onclick="addItem()">➤</button>
+  </footer>
+
+  <script>
+    var BUCKET_URL = 'https://kvdb.io/6PfxK16y6g9x4qW5E7eUuM/kielczow-tablica-notatki';
+    var currentItems = [];
+
+    function fetchNotes() {
+      fetch(BUCKET_URL)
+        .then(function(res) {
+          if (!res.ok) return [];
+          return res.json();
+        })
+        .then(function(data) {
+          currentItems = Array.isArray(data) ? data : [];
+          renderList();
+        })
+        .catch(function() {
+          renderList();
+        });
+    }
+
+    function saveNotes(callback) {
+      fetch(BUCKET_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentItems)
+      }).then(function() {
+        if (callback) callback();
+      });
+    }
+
+    function renderList() {
+      var box = document.getElementById('list-box');
+      box.innerHTML = '';
+
+      if (currentItems.length === 0) {
+        box.innerHTML = '<div class="empty-state">Brak notatek. Wpisz coś poniżej!</div>';
+        return;
+      }
+
+      currentItems.forEach(function(item, index) {
+        var row = document.createElement('div');
+        row.className = 'item-pill';
+        row.innerHTML = '<span class="item-text">' + item + '</span>' +
+          '<button class="item-del" onclick="deleteItem(' + index + ')">✕</button>';
+        box.appendChild(row);
+      });
+    }
+
+    function addItem() {
+      var inp = document.getElementById('note-input');
+      var val = inp.value.trim();
+      if (!val) return;
+
+      currentItems.push(val);
+      inp.value = '';
+      renderList();
+      saveNotes();
+    }
+
+    function deleteItem(index) {
+      currentItems.splice(index, 1);
+      renderList();
+      saveNotes();
+    }
+
+    function clearAll() {
+      if (confirm('Usunąć wszystkie notatki z telewizora?')) {
+        currentItems = [];
+        renderList();
+        saveNotes();
+      }
+    }
+
+    fetchNotes();
+  </script>
+</body>
+</html>
