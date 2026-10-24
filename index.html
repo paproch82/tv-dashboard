@@ -9,14 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-glass: rgba(15, 23, 42, 0.55);
-      --bg-card: rgba(15, 23, 42, 0.45);
-      --border-glass: rgba(255, 255, 255, 0.12);
+      --bg-glass: rgba(15, 23, 42, 0.50);
+      --bg-card: rgba(15, 23, 42, 0.40);
+      --border-glass: rgba(255, 255, 255, 0.10);
       --accent-blue: #38bdf8;
       --accent-green: #4ade80;
       --accent-yellow: #facc15;
       --accent-orange: #fb923c;
-      --accent-purple: #c084fc;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -42,7 +41,7 @@
     .bg-overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.3) 0%, rgba(11, 15, 25, 0.85) 100%);
+      background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.25) 0%, rgba(11, 15, 25, 0.85) 100%);
       z-index: 2;
     }
 
@@ -120,7 +119,7 @@
 
     .compact-grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.95fr 0.9fr;
+      grid-template-columns: 1.15fr 1fr 0.85fr;
       gap: 0.85rem;
     }
 
@@ -189,29 +188,14 @@
     }
 
     /* Tablica na szybko */
-    .quick-box { display: flex; flex-direction: column; gap: 0.4rem; justify-content: space-between; height: 100%; }
+    .quick-box { display: flex; flex-direction: column; gap: 0.4rem; justify-content: flex-start; height: 100%; }
     .note-line {
-      font-size: 0.74rem;
+      font-size: 0.75rem;
       color: #e2e8f0;
       background: rgba(255,255,255,0.03);
-      padding: 0.4rem 0.55rem;
+      padding: 0.55rem 0.65rem;
       border-radius: 0.45rem;
       border-left: 2px solid var(--accent-orange);
-    }
-    .televizo-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--accent-blue);
-      padding: 0.45rem;
-      border-radius: 0.5rem;
-      font-weight: 700;
-      font-size: 0.75rem;
-      text-decoration: none;
-      cursor: pointer;
     }
 
     /* Kalendarz Tygodniowy */
@@ -270,7 +254,12 @@
       backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass);
       border-radius: 0.9rem;
-      padding: 0.5rem 1.4rem;
+      padding: 0.45rem 1.4rem;
+    }
+    .radio-and-televizo {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
     }
     .radio-box {
       display: flex;
@@ -293,6 +282,23 @@
     .radio-meta h4 { font-size: 0.82rem; font-weight: 700; }
     .radio-meta p { font-size: 0.68rem; color: var(--text-muted); }
 
+    /* Przycisk Televizo na pasku */
+    .televizo-bar-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      color: var(--accent-blue);
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.6rem;
+      font-weight: 700;
+      font-size: 0.74rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .televizo-bar-btn:hover { background: rgba(56, 189, 248, 0.24); }
+
     .tag-location {
       font-size: 0.7rem;
       color: var(--text-muted);
@@ -308,7 +314,7 @@
     <!-- Pasek Górny -->
     <div class="top-bar">
       <div class="clock-section">
-        <h1 id="clock">12:00</h1>
+        <h1 id="clock">--:--</h1>
         <p id="date">Ładowanie daty...</p>
       </div>
 
@@ -345,11 +351,11 @@
           </div>
         </div>
 
-        <!-- 2. Dojazdy -->
+        <!-- 2. Dojazdy z Kiełczowa (Polna) -->
         <div class="card">
           <div class="card-title">
             <span>🚗 Dojazdy z Kiełczowa (ul. Polna)</span>
-            <span style="color: var(--text-muted); font-size: 0.65rem;" id="commute-status">Live (TomTom)</span>
+            <span style="color: var(--accent-blue); font-size: 0.65rem;" id="commute-status">Live TomTom</span>
           </div>
           <div class="commute-list">
             <div class="commute-item">
@@ -357,14 +363,14 @@
                 <div class="commute-name">Tsusho Łęg</div>
                 <div class="commute-via">przez Wschodnią Obwodnicę (WOW)</div>
               </div>
-              <div class="commute-time" id="time-tsusho">~17 min</div>
+              <div class="commute-time" id="time-tsusho">Sprawdzanie...</div>
             </div>
             <div class="commute-item">
               <div>
                 <div class="commute-name">Kochanowskiego 55a</div>
                 <div class="commute-via">przez Krzywoustego / Brucknera</div>
               </div>
-              <div class="commute-time" id="time-koch">~15 min</div>
+              <div class="commute-time" id="time-koch">Sprawdzanie...</div>
             </div>
           </div>
         </div>
@@ -373,10 +379,7 @@
         <div class="card">
           <div class="card-title">📌 Tablica Na Szybko</div>
           <div class="quick-box">
-            <div class="note-line">Wspólna lista: gotowa do wpisania notatki</div>
-            <div class="televizo-link" onclick="alert('Uruchamianie Televizo IPTV...')">
-              📺 Kontynuuj w Televizo IPTV
-            </div>
+            <div class="note-line">Wspólna lista: gotowa do synchronizacji notatek</div>
           </div>
         </div>
       </div>
@@ -391,15 +394,21 @@
       </div>
     </div>
 
-    <!-- Pasek Dolny -->
+    <!-- Pasek Dolny: Radio RAM + Przycisk Televizo obok niego -->
     <div class="bottom-bar">
-      <div class="radio-box">
-        <button class="play-btn" id="radio-btn" onclick="toggleRadio()">▶</button>
-        <div class="radio-meta">
-          <h4>Radio RAM 89.8 FM</h4>
-          <p id="radio-status">Wrocław • Kliknij, aby włączyć</p>
+      <div class="radio-and-televizo">
+        <div class="radio-box">
+          <button class="play-btn" id="radio-btn" onclick="toggleRadio()">▶</button>
+          <div class="radio-meta">
+            <h4>Radio RAM 89.8 FM</h4>
+            <p id="radio-status">Wrocław • Kliknij, aby włączyć</p>
+          </div>
+          <audio id="audio-stream" src="https://stream.radioram.pl:8000/ram_mp3" preload="none"></audio>
         </div>
-        <audio id="audio-stream" src="https://stream.radioram.pl:8000/ram_mp3" preload="none"></audio>
+
+        <div class="televizo-bar-btn" onclick="alert('Uruchamianie Televizo IPTV...')">
+          📺 Kontynuuj w Televizo
+        </div>
       </div>
 
       <div class="tag-location" id="wallpaper-tag">
@@ -540,11 +549,11 @@
     loadWeather();
     setInterval(loadWeather, 300000);
 
-    // TomTom API (6:00 - 9:00 rano)
+    // TomTom API – Precyzyjne punkty z Kiełczowa (ul. Polna)
     const TOMTOM_KEY = 'KX5qRepXbYZUHX9vuKYyWzQxojJHmJNM';
-    const COORDS_KIELCZOW = '51.1557,17.1512';
-    const COORDS_TSUSHO = '51.0428,17.2625';
-    const COORDS_KOCHANOWSKIEGO = '51.1189,17.0786';
+    const COORDS_KIELCZOW = '51.1557,17.1512';      // Kiełczów, ul. Polna
+    const COORDS_TSUSHO = '51.0268,17.2798';        // Dokładna strefa Toyota Tsusho w Łęgu
+    const COORDS_KOCHANOWSKIEGO = '51.1189,17.0786'; // Kochanowskiego 55a
 
     async function fetchTomTomRoute(fromCoords, toCoords) {
       const url = `https://api.tomtom.com/routing/1/calculateRoute/${fromCoords}:${toCoords}/json?key=${TOMTOM_KEY}&traffic=true&travelMode=car`;
@@ -554,12 +563,13 @@
       return Math.round(sec / 60);
     }
 
-    async function updateCommute() {
+    async function updateCommute(force = false) {
       const now = new Date();
       const hour = now.getHours();
       const isMorningPeak = (hour >= 6 && hour < 9);
 
-      if (isMorningPeak) {
+      // Pobieramy na żywo przy każdym otwarciu strony ALBO co 5 minut w oknie 6-9
+      if (force || isMorningPeak) {
         try {
           const [tTsusho, tKoch] = await Promise.all([
             fetchTomTomRoute(COORDS_KIELCZOW, COORDS_TSUSHO),
@@ -572,13 +582,13 @@
           document.getElementById('commute-status').textContent = 'Błąd TomTom';
         }
       } else {
-        document.getElementById('time-tsusho').textContent = '~18 min';
-        document.getElementById('time-koch').textContent = '~15 min';
         document.getElementById('commute-status').textContent = 'Poza szczytem';
       }
     }
-    updateCommute();
-    setInterval(updateCommute, 300000);
+    // Wymuszamy pierwszy odczyt na żywo od razu po otwarciu
+    updateCommute(true);
+    // Kolejne odświeżenia co 5 minut (aktywne w oknie szczytu)
+    setInterval(() => updateCommute(false), 300000);
 
     // Radio RAM
     const audio = document.getElementById('audio-stream');
