@@ -87,7 +87,7 @@
     .m-lbl { font-size: 0.55rem; color: #94a3b8; text-transform: uppercase; }
     .m-val { font-size: 0.74rem; font-weight: 600; }
 
-    /* Klikalne wiersze dojazdów */
+    /* Wiersze dojazdów */
     .commute-row {
       display: flex;
       justify-content: space-between;
@@ -178,11 +178,11 @@
 
     .tag { font-size: 0.65rem; color: #94a3b8; }
 
-    /* Wspólne style Modali */
+    /* Modale */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.82);
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(10px);
       display: none;
       align-items: center;
@@ -233,7 +233,7 @@
       font-size: 0.75rem;
     }
 
-    /* Modal Kalendarza Miesięcznego */
+    /* Modal Kalendarza */
     .month-weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -268,7 +268,7 @@
       font-weight: 800;
     }
 
-    /* Modal Mapy Trasy */
+    /* Modal Mapy */
     .map-frame-wrapper {
       width: 100%;
       height: 380px;
@@ -293,15 +293,6 @@
     }
     .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
     .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
-    .gmaps-link {
-      background: #2563eb;
-      color: white;
-      text-decoration: none;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
   </style>
 </head>
 <body>
@@ -341,7 +332,7 @@
           </div>
         </div>
 
-        <!-- 2. Dojazdy (Klikalne kafelki tras!) -->
+        <!-- 2. Dojazdy -->
         <div class="card c-pad">
           <div class="card-title">
             <span>🚗 Dojazdy z Kiełczowa (ul. Polna)</span>
@@ -403,7 +394,7 @@
     </div>
   </div>
 
-  <!-- Okno modalne 1: Pełny Kalendarz Miesięczny -->
+  <!-- Modal 1: Kalendarz Miesięczny -->
   <div class="modal-overlay" id="month-modal" onclick="closeModalOnBg(event, 'month-modal')">
     <div class="modal-content">
       <div class="modal-header">
@@ -424,11 +415,11 @@
     </div>
   </div>
 
-  <!-- Okno modalne 2: Interaktywna Mapa Trasy -->
+  <!-- Modal 2: Mapa Trasy wewnątrz TV Bro -->
   <div class="modal-overlay" id="route-modal" onclick="closeModalOnBg(event, 'route-modal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="route-modal-title">Trasa: Kiełczów ➔ Tsusho Łęg</h3>
+        <h3 id="route-modal-title">Podgląd Trasy</h3>
         <button class="close-btn" onclick="closeModal('route-modal')">✕ Zamknij</button>
       </div>
 
@@ -438,10 +429,9 @@
 
       <div class="route-details">
         <div class="route-meta">
-          <h5 id="route-name-badge">Najszybsza trasa: ~25 min</h5>
-          <p id="route-sub-badge">Kiełczów (Polna) ➔ Łaniewska ➔ WOW ➔ Tsusho Łęg</p>
+          <h5 id="route-name-badge">Najszybsza trasa</h5>
+          <p id="route-sub-badge">Szczegóły trasy</p>
         </div>
-        <a id="route-gmaps-btn" href="#" target="_blank" class="gmaps-link">📍 Otwórz w Google Maps</a>
       </div>
     </div>
   </div>
@@ -526,23 +516,19 @@
       renderMonthCalendar();
     }
 
-    // 4. Modal Trasy Dojazdu (Tsusho Łęg oraz Kochanowskiego)
+    // 4. Modal Trasy Dojazdu (Osadzona bezpośrednio mapa z trasą OSRM)
     const routesConfig = {
       tsusho: {
         title: 'Trasa: Kiełczów ➔ Tsusho Łęg',
-        badge: 'Najszybsza trasa: ~25 min (przez Wschodnią Obwodnicę)',
-        sub: 'Polna ➔ Wilczycka ➔ Rondo Łany ➔ WOW ➔ Tsusho Łęg',
-        // Precyzyjny widok mapy obejmujący Kiełczów i Łęg
-        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.1100%2C51.0200%2C17.3100%2C51.1700&layer=mapnik&marker=51.0268%2C17.2798',
-        gmapsUrl: 'https://www.google.com/maps/dir/51.1557,17.1512/51.0268,17.2798'
+        badge: 'Najszybsza trasa: ~25 min (przez WOW)',
+        sub: 'Kiełczów (Polna) ➔ Wilczycka ➔ WOW ➔ Tsusho Łęg',
+        mapUrl: 'https://map.project-osrm.org/?z=12&center=51.0913%2C17.2155&loc=51.1557%2C17.1512&loc=51.0268%2C17.2798&hl=pl'
       },
       koch: {
         title: 'Trasa: Kiełczów ➔ Kochanowskiego 55a',
         badge: 'Najszybsza trasa: ~23 min (przez Krzywoustego)',
-        sub: 'Polna ➔ Kiełczowska ➔ Krzywoustego ➔ Brucknera ➔ Kochanowskiego 55a',
-        // Precyzyjny widok obejmujący Kiełczów i Kochanowskiego / Psie Pole
-        mapUrl: 'https://www.openstreetmap.org/export/embed.html?bbox=17.0500%2C51.1100%2C17.1700%2C51.1650&layer=mapnik&marker=51.1198%2C17.0754',
-        gmapsUrl: 'https://www.google.com/maps/dir/51.1557,17.1512/51.1198,17.0754'
+        sub: 'Kiełczów (Polna) ➔ Krzywoustego ➔ Brucknera ➔ Kochanowskiego 55a',
+        mapUrl: 'https://map.project-osrm.org/?z=13&center=51.1378%2C17.1133&loc=51.1557%2C17.1512&loc=51.1198%2C17.0754&hl=pl'
       }
     };
 
@@ -554,7 +540,6 @@
       document.getElementById('route-name-badge').textContent = config.badge;
       document.getElementById('route-sub-badge').textContent = config.sub;
       document.getElementById('route-iframe').src = config.mapUrl;
-      document.getElementById('route-gmaps-btn').href = config.gmapsUrl;
 
       document.getElementById('route-modal').classList.add('open');
     }
@@ -563,7 +548,6 @@
       const modal = document.getElementById(modalId);
       if (modal) {
         modal.classList.remove('open');
-        // Czyszczenie iframe po zamknięciu, by nie obciążać TV
         if (modalId === 'route-modal') {
           document.getElementById('route-iframe').src = 'about:blank';
         }
