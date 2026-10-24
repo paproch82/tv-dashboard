@@ -44,11 +44,19 @@
     .clock-box h1 { font-size: 2.6rem; font-weight: 800; line-height: 1; }
     .clock-box p { font-size: 0.95rem; color: #94a3b8; text-transform: capitalize; }
 
+    /* Klikalny widget pogody */
     .weather-widget {
       padding: 6px 14px;
       display: flex;
       align-items: center;
       gap: 10px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      transition: all 0.15s ease;
+    }
+    .weather-widget:hover, .weather-widget:focus {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: rgba(56, 189, 248, 0.5);
     }
     .w-icon { font-size: 1.8rem; }
     .w-temp { font-size: 1.6rem; font-weight: 700; color: #38bdf8; text-align: right; line-height: 1; }
@@ -273,7 +281,7 @@
       font-weight: 800;
     }
 
-    /* Mapa Leaflet */
+    /* Modal Mapy Leaflet */
     #leaflet-map {
       width: 100%;
       height: 400px;
@@ -292,6 +300,62 @@
     }
     .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
     .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+
+    /* Modal Prognozy Pogody (4 Dni) */
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .f-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .f-card.today-highlight {
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .f-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .f-date {
+      font-size: 0.68rem;
+      color: #94a3b8;
+    }
+    .f-icon {
+      font-size: 2.3rem;
+      line-height: 1;
+      margin: 4px 0;
+    }
+    .f-temp {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .f-temp-min {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .f-details {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 8px;
+      font-size: 0.68rem;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
   </style>
 </head>
 <body>
@@ -304,7 +368,8 @@
         <p id="date">Ładowanie daty...</p>
       </div>
 
-      <div class="weather-widget card">
+      <!-- Kafel pogody z obsługą kliknięcia -->
+      <div class="weather-widget card" id="weather-btn" tabindex="0" title="Kliknij, aby zobaczyć prognozę 4-dniową">
         <div class="w-icon" id="w-icon">🌤️</div>
         <div>
           <div class="w-temp" id="w-temp">--°C</div>
@@ -441,6 +506,20 @@
     </div>
   </div>
 
+  <!-- Modal 3: Prognoza Pogody 4-Dniowa -->
+  <div class="modal-overlay" id="weather-modal" onclick="closeModalOnBg(event, 'weather-modal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🌦️ Prognoza pogody: Kiełczów</h3>
+        <button class="close-btn" onclick="closeModal('weather-modal')">✕ Zamknij</button>
+      </div>
+
+      <div class="forecast-grid" id="forecast-container">
+        <!-- Generowane automatycznie przez JS -->
+      </div>
+    </div>
+  </div>
+
   <script>
     // ------------------------------------------------------------------
     // WSPÓŁRZĘDNE & KLUCZ TOMTOM:
@@ -463,22 +542,26 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Pogoda Open-Meteo na żywo dla Kiełczowa (co 15 minut)
-    function weatherCodeToIcon(code) {
-      if (code === 0) return '☀️';
-      if (code === 1 || code === 2) return '🌤️';
-      if (code === 3) return '☁️';
-      if (code >= 45 && code <= 48) return '🌫️';
-      if (code >= 51 && code <= 67) return '🌧️';
-      if (code >= 71 && code <= 77) return '🌨️';
-      if (code >= 80 && code <= 82) return '🌦️';
-      if (code >= 95) return '⛈️';
-      return '🌤️';
+    // 2. Pogoda Open-Meteo (Aktualna + Prognoza 4-Dniowa)
+    var forecastDailyData = null;
+
+    function weatherCodeToInfo(code) {
+      if (code === 0) return { icon: '☀️', desc: 'Słonecznie' };
+      if (code === 1 || code === 2) return { icon: '🌤️', desc: 'Częściowo słonecznie' };
+      if (code === 3) return { icon: '☁️', desc: 'Pochmurno' };
+      if (code >= 45 && code <= 48) return { icon: '🌫️', desc: 'Mgła' };
+      if (code >= 51 && code <= 55) return { icon: '🌦️', desc: 'Mżawka' };
+      if (code >= 61 && code <= 65) return { icon: '🌧️', desc: 'Deszcz' };
+      if (code >= 71 && code <= 77) return { icon: '🌨️', desc: 'Śnieg' };
+      if (code >= 80 && code <= 82) return { icon: '🌦️', desc: 'Przelotny deszcz' };
+      if (code >= 95) return { icon: '⛈️', desc: 'Burze' };
+      return { icon: '🌤️', desc: 'Umiarkowanie' };
     }
 
     function fetchWeatherData() {
       var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + DOM_COORDS[0] + '&longitude=' + DOM_COORDS[1] +
-        '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&timezone=auto';
+        '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m' +
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_gusts_10m_max&timezone=auto';
 
       fetch(url)
         .then(function(res) { return res.json(); })
@@ -491,17 +574,16 @@
             var gusts = Math.round(c.wind_gusts_10m);
             var humidity = c.relative_humidity_2m;
             var precip = c.precipitation;
-            var icon = weatherCodeToIcon(c.weather_code);
+            var wInfo = weatherCodeToInfo(c.weather_code);
 
-            // Aktualizacja widoku pogody
             document.getElementById('w-temp').textContent = temp + '°C';
             document.getElementById('w-feels').textContent = 'Odczuwalna: ' + feels + '°C';
-            document.getElementById('w-icon').textContent = icon;
+            document.getElementById('w-icon').textContent = wInfo.icon;
             document.getElementById('w-wind').textContent = wind + ' / ' + gusts + ' km/h';
             document.getElementById('w-humidity').textContent = humidity + '%';
             document.getElementById('w-precip').textContent = precip.toFixed(1) + ' mm';
 
-            // Inteligentna ocena indeksu biegowego
+            // Indeks biegowy
             var verdictEl = document.getElementById('run-verdict');
             var descEl = document.getElementById('run-desc');
 
@@ -527,9 +609,68 @@
               descEl.textContent = 'Stabilna pogoda na standardowy trening w tlenie.';
             }
           }
+
+          if (data && data.daily) {
+            forecastDailyData = data.daily;
+          }
         })
         .catch(function() {});
     }
+
+    // Modal prognozy 4-dniowej
+    function renderWeatherModal() {
+      if (!forecastDailyData) return;
+
+      var container = document.getElementById('forecast-container');
+      container.innerHTML = '';
+
+      var titles = ['Dziś', 'Jutro', 'Pojutrze', 'Popojutrze'];
+
+      for (var i = 0; i < 4; i++) {
+        var dateRaw = forecastDailyData.time[i]; // YYYY-MM-DD
+        var parts = dateRaw.split('-');
+        var dateFormatted = parts[2] + '.' + parts[1];
+
+        var code = forecastDailyData.weather_code[i];
+        var info = weatherCodeToInfo(code);
+        var maxT = Math.round(forecastDailyData.temperature_2m_max[i]);
+        var minT = Math.round(forecastDailyData.temperature_2m_min[i]);
+        var rain = forecastDailyData.precipitation_sum[i];
+        var gusts = Math.round(forecastDailyData.wind_gusts_10m_max[i]);
+
+        var card = document.createElement('div');
+        card.className = 'f-card' + (i === 0 ? ' today-highlight' : '');
+        card.innerHTML =
+          '<div>' +
+            '<div class="f-title">' + titles[i] + '</div>' +
+            '<div class="f-date">' + dateFormatted + '</div>' +
+          '</div>' +
+          '<div class="f-icon">' + info.icon + '</div>' +
+          '<div>' +
+            '<div class="f-temp">' + maxT + '°C</div>' +
+            '<div class="f-temp-min">noc: ' + minT + '°C</div>' +
+          '</div>' +
+          '<div class="f-details">' +
+            '<div>💧 Deszcz: <b>' + rain.toFixed(1) + ' mm</b></div>' +
+            '<div>💨 Porywy: <b>' + gusts + ' km/h</b></div>' +
+            '<div style="color: #94a3b8; font-size: 0.62rem; margin-top: 2px;">' + info.desc + '</div>' +
+          '</div>';
+
+        container.appendChild(card);
+      }
+    }
+
+    function openWeatherModal() {
+      renderWeatherModal();
+      document.getElementById('weather-modal').classList.add('open');
+    }
+
+    // Przypisanie kliknięcia do kafelka pogody
+    var wBtn = document.getElementById('weather-btn');
+    wBtn.addEventListener('click', openWeatherModal);
+    wBtn.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') openWeatherModal();
+    });
 
     // 3. Kalendarz Tygodniowy
     try {
