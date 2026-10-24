@@ -97,7 +97,7 @@
       color: #e2e8f0;
     }
 
-    /* Kalendarz */
+    /* Kalendarz Tygodniowy */
     .week-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -153,8 +153,6 @@
       font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
     }
     .tv-btn:hover { background: rgba(56, 189, 248, 0.25); }
 
@@ -166,7 +164,7 @@
   <!-- Góra -->
   <div class="top-bar">
     <div class="clock-box">
-      <h1 id="clock">12:00</h1>
+      <h1 id="clock">--:--</h1>
       <p id="date">Ładowanie daty...</p>
     </div>
 
@@ -247,13 +245,12 @@
           <h4>Radio RAM 89.8 FM</h4>
           <p id="r-status">Wrocław • Kliknij, aby włączyć</p>
         </div>
-        <audio id="audio" src="https://stream.radioram.pl/ram" preload="none"></audio>
+        <audio id="audio" preload="none"></audio>
       </div>
 
-      <!-- Przycisk Televizo -->
-      <a class="tv-btn" href="https://televizo.net" target="_blank" id="tv-action-btn">
-        📺 Otwórz Televizo
-      </a>
+      <button class="tv-btn" onclick="launchTelevizo()">
+        📺 Uruchom Televizo
+      </button>
     </div>
 
     <div class="tag" id="tag">📍 Patagonia: Cerro Fitz Roy</div>
@@ -283,7 +280,7 @@
       grid.appendChild(col);
     }
 
-    // Rotacja tapet
+    // Tapety
     const wp = [
       { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2560&q=85', tag: '📍 Patagonia: Cerro Fitz Roy' },
       { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2560&q=85', tag: '📍 Karkonosze: Grzbiet o świcie' },
@@ -298,25 +295,51 @@
       document.getElementById('tag').textContent = wp[wIdx].tag;
     }, 45000);
 
-    // Obsługa radia z logowaniem błędów
+    // Odtwarzacz Radia RAM z fallbackiem
+    const audioStreams = [
+      'https://stream4.nadaje.com:11974/ram',
+      'https://stream.radioram.pl/ram'
+    ];
+    let currentStreamIndex = 0;
+
     const aud = document.getElementById('audio');
     const rBtn = document.getElementById('radio-btn');
     const rSt = document.getElementById('r-status');
 
     function toggleRadio() {
       if (aud.paused) {
-        rSt.textContent = 'Łączenie...';
+        rSt.textContent = 'Łączenie ze strumieniem...';
+        aud.src = audioStreams[currentStreamIndex];
         aud.play().then(() => {
           rBtn.textContent = '❚❚';
           rSt.textContent = 'Na żywo • 89.8 FM';
-        }).catch((err) => {
-          console.error("Błąd odtwarzania:", err);
-          rSt.textContent = 'Błąd strumienia (kliknij ponownie)';
+        }).catch(() => {
+          // Fallback do drugiego serwera
+          currentStreamIndex = (currentStreamIndex + 1) % audioStreams.length;
+          aud.src = audioStreams[currentStreamIndex];
+          aud.play().then(() => {
+            rBtn.textContent = '❚❚';
+            rSt.textContent = 'Na żywo • 89.8 FM';
+          }).catch(() => {
+            rSt.textContent = 'Kliknij ponownie aby odtworzyć';
+          });
         });
       } else {
         aud.pause();
         rBtn.textContent = '▶';
         rSt.textContent = 'Wstrzymano';
+      }
+    }
+
+    // Uruchamianie Televizo (detekcja TV vs PC)
+    function launchTelevizo() {
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        // Wywołanie systemowe aplikacji na Android TV
+        window.location.href = 'intent:#Intent;package=com.niklabs.pp;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end';
+      } else {
+        // Komunikat na komputerze
+        alert('Ten przycisk na Twoim telewizorze Sony uruchamia bezpośrednio aplikację Televizo IPTV. Na komputerze aplikacja nie jest zainstalowana.');
       }
     }
   </script>
