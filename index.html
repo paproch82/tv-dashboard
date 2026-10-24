@@ -44,7 +44,7 @@
     .clock-box h1 { font-size: 2.6rem; font-weight: 800; line-height: 1; }
     .clock-box p { font-size: 0.95rem; color: #94a3b8; text-transform: capitalize; }
 
-    /* Klikalny kafel pogody */
+    /* Kafel pogody */
     .weather-widget {
       padding: 6px 14px;
       display: flex;
@@ -70,17 +70,14 @@
       gap: 8px;
     }
 
-    /* Domyślny układ 3-kolumnowy w szczycie */
     .grid-middle {
       display: grid;
       grid-template-columns: 1.1fr 1.25fr 0.65fr;
       gap: 8px;
       transition: all 0.3s ease;
     }
-
-    /* Układ 2-kolumnowy poza szczytem */
     .grid-middle.commute-hidden {
-      grid-template-columns: 1.3fr 1fr;
+      grid-template-columns: 1.25fr 1fr;
     }
 
     .c-pad { padding: 8px 12px; }
@@ -107,7 +104,7 @@
     .m-lbl { font-size: 0.55rem; color: #94a3b8; text-transform: uppercase; }
     .m-val { font-size: 0.74rem; font-weight: 600; }
 
-    /* Kafelki dojazdów */
+    /* Dojazdy */
     .commute-row {
       display: flex;
       justify-content: space-between;
@@ -131,13 +128,30 @@
     .commute-time { font-size: 0.95rem; font-weight: 800; color: #38bdf8; }
     .commute-delay { font-size: 0.58rem; color: #f87171; font-weight: 600; }
 
-    .note-box {
+    /* Tablica Notatek na TV */
+    .notes-tv-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 82px;
+      overflow-y: hidden;
+    }
+    .note-tv-item {
       background: rgba(255, 255, 255, 0.04);
-      border-left: 3px solid #fb923c;
-      padding: 6px 8px;
-      border-radius: 6px;
-      font-size: 0.68rem;
-      color: #e2e8f0;
+      border-left: 3px solid #00a884;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .note-empty {
+      font-size: 0.65rem;
+      color: #64748b;
+      font-style: italic;
+      padding: 6px 2px;
     }
 
     /* Kalendarz Tygodniowy */
@@ -261,7 +275,7 @@
       font-size: 0.75rem;
     }
 
-    /* Modal Kalendarza */
+    /* Modal Kalendarza Miesięcznego */
     .month-weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -316,7 +330,7 @@
     .route-meta h5 { font-size: 0.85rem; font-weight: 700; color: #38bdf8; }
     .route-meta p { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
 
-    /* Modal Prognozy Pogody */
+    /* Modal Pogody */
     .forecast-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -432,7 +446,7 @@
           </div>
         </div>
 
-        <!-- 2. Dojazdy TomTom Live (Widoczny w Pn-Pt 5:00-9:00) -->
+        <!-- 2. Dojazdy TomTom Live (Pn-Pt 5:00-9:00) -->
         <div class="card c-pad" id="main-commute-card">
           <div class="card-title">
             <span>🚗 Dojazdy: Dom</span>
@@ -462,11 +476,14 @@
           </div>
         </div>
 
-        <!-- 3. Tablica -->
+        <!-- 3. Tablica Notatek na Żywo -->
         <div class="card c-pad">
-          <div class="card-title">📌 Tablica Na Szybko</div>
-          <div class="note-box">
-            Wspólna lista: gotowa do synchronizacji notatek
+          <div class="card-title">
+            <span>🛒 Zakupy / Tablica</span>
+            <span id="notes-status" style="color: #00a884;">Live</span>
+          </div>
+          <div class="notes-tv-list" id="tv-notes-box">
+            <div class="note-empty">Ładowanie notatek...</div>
           </div>
         </div>
       </div>
@@ -493,7 +510,6 @@
           <audio id="audio" src="https://stream2.prw.pl:8001/radioram" preload="none"></audio>
         </div>
 
-        <!-- Przycisk zminimalizowanych dojazdów (widoczny poza szczytem) -->
         <button class="bottom-pill-btn" id="commute-mini-btn" style="display: none;" onclick="openMiniCommuteModal()">
           🚗 Dojazdy (TomTom)
         </button>
@@ -547,7 +563,7 @@
     </div>
   </div>
 
-  <!-- Modal 3: Pogoda (Dni ➔ Przekrój Godzinowy) -->
+  <!-- Modal 3: Pogoda -->
   <div class="modal-overlay" id="weather-modal" onclick="closeModalOnBg(event, 'weather-modal')">
     <div class="modal-content">
       <div class="modal-header">
@@ -568,7 +584,7 @@
     </div>
   </div>
 
-  <!-- Modal 4: Zminimalizowane Dojazdy (poza godzinami szczytu) -->
+  <!-- Modal 4: Dojazdy Poza Szczytem -->
   <div class="modal-overlay" id="mini-commute-modal" onclick="closeModalOnBg(event, 'mini-commute-modal')">
     <div class="modal-content" style="width: 520px;">
       <div class="modal-header">
@@ -608,46 +624,11 @@
     var TSUSHO_COORDS = [51.03529091964734, 17.290916081534256];
     var NOIR_COORDS = [51.122948175552956, 17.07826835270448];
     var TOMTOM_KEY = 'KX5qRepXbYZUHX9vuKYyWzQxojJHmJNM';
+
+    // MAGID BINA (Prywatny magazyn notatek):
+    var STORAGE_URL = 'https://api.jsonbin.io/v3/b/66205842ad19ca34f85be55d';
+    var STORAGE_KEY = '$2a$10$w1U4lD7vQxS.B4o7R27NiuV2f/OsuVomG2rWq6ZcI7t9gqg2qTz2i';
     // ------------------------------------------------------------------
-
-    // Logika szczytu porannego: Pn-Pt 5:00 - 9:00
-    function isMorningRushHour() {
-      var d = new Date();
-      var day = d.getDay(); // 1-5 = Pn-Pt
-      var hrs = d.getHours();
-      return (day >= 1 && day <= 5 && hrs >= 5 && hrs < 9);
-    }
-
-    function applyCommuteLayout() {
-      var isRush = isMorningRushHour();
-      var mainCard = document.getElementById('main-commute-card');
-      var grid = document.getElementById('middle-grid');
-      var miniBtn = document.getElementById('commute-mini-btn');
-
-      if (isRush) {
-        // Pn-Pt 5-9: pełny kafel na środku
-        mainCard.style.display = 'block';
-        grid.classList.remove('commute-hidden');
-        miniBtn.style.display = 'none';
-      } else {
-        // Poza szczytem: chowamy duży kafel, pokazujemy mały przycisk na dole
-        mainCard.style.display = 'none';
-        grid.classList.add('commute-hidden');
-        miniBtn.style.display = 'inline-block';
-      }
-    }
-
-    function openMiniCommuteModal() {
-      document.getElementById('mini-commute-modal').classList.add('open');
-      // Odśwież widok w oknie podręcznym
-      document.getElementById('mini-time-tsusho').textContent = document.getElementById('time-tsusho').textContent;
-      document.getElementById('mini-delay-tsusho').textContent = document.getElementById('delay-tsusho').textContent;
-      document.getElementById('mini-sub-tsusho').textContent = document.getElementById('sub-tsusho').textContent;
-
-      document.getElementById('mini-time-koch').textContent = document.getElementById('time-koch').textContent;
-      document.getElementById('mini-delay-koch').textContent = document.getElementById('delay-koch').textContent;
-      document.getElementById('mini-sub-koch').textContent = document.getElementById('sub-koch').textContent;
-    }
 
     // 1. Zegar i Data
     function updateClock() {
@@ -662,7 +643,139 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Pogoda Open-Meteo
+    // 2. Synchronizacja Notatek z telefonem
+    function fetchLiveNotes() {
+      fetch(STORAGE_URL + '/latest', {
+        headers: { 'X-Master-Key': STORAGE_KEY }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var items = (data && data.record && Array.isArray(data.record.notes)) ? data.record.notes : [];
+        var box = document.getElementById('tv-notes-box');
+        if (items.length === 0) {
+          box.innerHTML = '<div class="note-empty">Brak aktywnych notatek</div>';
+          return;
+        }
+        box.innerHTML = '';
+        items.forEach(function(txt) {
+          var div = document.createElement('div');
+          div.className = 'note-tv-item';
+          div.textContent = '• ' + txt;
+          box.appendChild(div);
+        });
+      })
+      .catch(function() {});
+    }
+
+    // 3. Kalendarz Tygodniowy
+    try {
+      var daysNames = ['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
+      var now = new Date();
+      var dayOfWeek = (now.getDay() + 6) % 7;
+      var weekGrid = document.getElementById('week-grid');
+      weekGrid.innerHTML = '';
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(now);
+        d.setDate(now.getDate() - dayOfWeek + i);
+        var isToday = i === dayOfWeek;
+        var col = document.createElement('div');
+        col.className = 'day-box' + (isToday ? ' today' : '');
+        col.innerHTML = '<div class="day-hdr"><span>' + daysNames[i] + '</span><span>' + d.getDate() + '</span></div><div class="day-txt">Brak planów</div>';
+        weekGrid.appendChild(col);
+      }
+    } catch (e) {}
+
+    // 4. Kalendarz Miesięczny
+    var viewDate = new Date();
+    function renderMonthCalendar() {
+      try {
+        var year = viewDate.getFullYear();
+        var month = viewDate.getMonth();
+        var monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
+        document.getElementById('modal-month-title').textContent = monthNames[month] + ' ' + year;
+
+        var grid = document.getElementById('month-grid');
+        grid.innerHTML = '';
+        var firstDay = new Date(year, month, 1);
+        var lastDay = new Date(year, month + 1, 0);
+        var totalDays = lastDay.getDate();
+        var startDayIndex = (firstDay.getDay() + 6) % 7;
+        var prevLastDay = new Date(year, month, 0).getDate();
+
+        for (var i = startDayIndex - 1; i >= 0; i--) {
+          var cell = document.createElement('div');
+          cell.className = 'm-day other-month';
+          cell.innerHTML = '<span>' + (prevLastDay - i) + '</span>';
+          grid.appendChild(cell);
+        }
+        var today = new Date();
+        for (var day = 1; day <= totalDays; day++) {
+          var cell = document.createElement('div');
+          var isCurrentDay = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+          cell.className = 'm-day' + (isCurrentDay ? ' current-today' : '');
+          cell.innerHTML = '<span>' + day + '</span>';
+          grid.appendChild(cell);
+        }
+        var totalCells = startDayIndex + totalDays;
+        var remainingCells = (7 - (totalCells % 7)) % 7;
+        for (var nextDay = 1; nextDay <= remainingCells; nextDay++) {
+          var cell = document.createElement('div');
+          cell.className = 'm-day other-month';
+          cell.innerHTML = '<span>' + nextDay + '</span>';
+          grid.appendChild(cell);
+        }
+      } catch (e) {}
+    }
+    function openMonthModal() {
+      document.getElementById('month-modal').classList.add('open');
+      renderMonthCalendar();
+    }
+    function changeMonth(delta) {
+      viewDate.setMonth(viewDate.getMonth() + delta);
+      renderMonthCalendar();
+    }
+    function resetToCurrentMonth() {
+      viewDate = new Date();
+      renderMonthCalendar();
+    }
+
+    // 5. Tryb dojazdów: Pn-Pt 5:00 - 9:00
+    function isMorningRushHour() {
+      var d = new Date();
+      var day = d.getDay();
+      var hrs = d.getHours();
+      return (day >= 1 && day <= 5 && hrs >= 5 && hrs < 9);
+    }
+
+    function applyCommuteLayout() {
+      var isRush = isMorningRushHour();
+      var mainCard = document.getElementById('main-commute-card');
+      var grid = document.getElementById('middle-grid');
+      var miniBtn = document.getElementById('commute-mini-btn');
+
+      if (isRush) {
+        mainCard.style.display = 'block';
+        grid.classList.remove('commute-hidden');
+        miniBtn.style.display = 'none';
+      } else {
+        mainCard.style.display = 'none';
+        grid.classList.add('commute-hidden');
+        miniBtn.style.display = 'inline-block';
+      }
+    }
+
+    function openMiniCommuteModal() {
+      document.getElementById('mini-commute-modal').classList.add('open');
+      document.getElementById('mini-time-tsusho').textContent = document.getElementById('time-tsusho').textContent;
+      document.getElementById('mini-delay-tsusho').textContent = document.getElementById('delay-tsusho').textContent;
+      document.getElementById('mini-sub-tsusho').textContent = document.getElementById('sub-tsusho').textContent;
+
+      document.getElementById('mini-time-koch').textContent = document.getElementById('time-koch').textContent;
+      document.getElementById('mini-delay-koch').textContent = document.getElementById('delay-koch').textContent;
+      document.getElementById('mini-sub-koch').textContent = document.getElementById('sub-koch').textContent;
+    }
+
+    // 6. Pogoda Open-Meteo
     var forecastDailyData = null;
     var forecastHourlyData = null;
 
@@ -737,9 +850,7 @@
           var modal = document.getElementById('weather-modal');
           if (modal && modal.classList.contains('open')) {
             var hourlyContainer = document.getElementById('forecast-hourly-container');
-            if (hourlyContainer.style.display === 'none') {
-              renderDaysView();
-            }
+            if (hourlyContainer.style.display === 'none') renderDaysView();
           }
         })
         .catch(function() {});
@@ -846,84 +957,10 @@
     function openWeatherModal() {
       document.getElementById('weather-modal').classList.add('open');
       showDaysView();
-      if (!forecastDailyData || !forecastHourlyData) {
-        fetchWeatherData();
-      }
+      if (!forecastDailyData || !forecastHourlyData) fetchWeatherData();
     }
 
-    // 3. Kalendarz Tygodniowy
-    try {
-      var daysNames = ['Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'];
-      var now = new Date();
-      var dayOfWeek = (now.getDay() + 6) % 7;
-      var weekGrid = document.getElementById('week-grid');
-      weekGrid.innerHTML = '';
-      for (var i = 0; i < 7; i++) {
-        var d = new Date(now);
-        d.setDate(now.getDate() - dayOfWeek + i);
-        var isToday = i === dayOfWeek;
-        var col = document.createElement('div');
-        col.className = 'day-box' + (isToday ? ' today' : '');
-        col.innerHTML = '<div class="day-hdr"><span>' + daysNames[i] + '</span><span>' + d.getDate() + '</span></div><div class="day-txt">Brak planów</div>';
-        weekGrid.appendChild(col);
-      }
-    } catch (e) {}
-
-    // 4. Kalendarz Miesięczny
-    var viewDate = new Date();
-    function renderMonthCalendar() {
-      try {
-        var year = viewDate.getFullYear();
-        var month = viewDate.getMonth();
-        var monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
-        document.getElementById('modal-month-title').textContent = monthNames[month] + ' ' + year;
-
-        var grid = document.getElementById('month-grid');
-        grid.innerHTML = '';
-        var firstDay = new Date(year, month, 1);
-        var lastDay = new Date(year, month + 1, 0);
-        var totalDays = lastDay.getDate();
-        var startDayIndex = (firstDay.getDay() + 6) % 7;
-        var prevLastDay = new Date(year, month, 0).getDate();
-
-        for (var i = startDayIndex - 1; i >= 0; i--) {
-          var cell = document.createElement('div');
-          cell.className = 'm-day other-month';
-          cell.innerHTML = '<span>' + (prevLastDay - i) + '</span>';
-          grid.appendChild(cell);
-        }
-        var today = new Date();
-        for (var day = 1; day <= totalDays; day++) {
-          var cell = document.createElement('div');
-          var isCurrentDay = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
-          cell.className = 'm-day' + (isCurrentDay ? ' current-today' : '');
-          cell.innerHTML = '<span>' + day + '</span>';
-          grid.appendChild(cell);
-        }
-        var totalCells = startDayIndex + totalDays;
-        var remainingCells = (7 - (totalCells % 7)) % 7;
-        for (var nextDay = 1; nextDay <= remainingCells; nextDay++) {
-          var cell = document.createElement('div');
-          cell.className = 'm-day other-month';
-          cell.innerHTML = '<span>' + nextDay + '</span>';
-          grid.appendChild(cell);
-        }
-      } catch (e) {}
-    }
-    function openMonthModal() {
-      document.getElementById('month-modal').classList.add('open');
-      renderMonthCalendar();
-    }
-    function changeMonth(delta) {
-      viewDate.setMonth(viewDate.getMonth() + delta);
-      renderMonthCalendar();
-    }
-    function resetToCurrentMonth() {
-      viewDate = new Date();
-      renderMonthCalendar();
-    }
-
-    // 5. Dojazdy TomTom Live Routing
+    // 7. Dojazdy TomTom Live Routing
     var routesConfig = {
       tsusho: {
         title: 'Trasa: Dom ➔ Tsusho Łęg',
@@ -1051,9 +1088,7 @@
         renderTomTomMap(key);
       });
 
-      if (cfg.lastData) {
-        renderTomTomMap(key);
-      }
+      if (cfg.lastData) renderTomTomMap(key);
     }
 
     function closeModal(modalId) {
@@ -1069,22 +1104,20 @@
     applyCommuteLayout();
     fetchWeatherData();
     updateAllCommutes();
+    fetchLiveNotes();
 
-    // CYKLICZNE SPRAWDZANIE:
-    // 1. Sprawdzanie i przełączanie trybu szczytu co minutę
+    // CYKLICZNE ZADANIA:
     setInterval(applyCommuteLayout, 60 * 1000);
-
-    // 2. Pogoda co 15 minut
     setInterval(fetchWeatherData, 15 * 60 * 1000);
+    setInterval(fetchLiveNotes, 10 * 1000); // synchronizacja notatek z telefonem co 10 sekund
 
-    // 3. Dojazdy TomTom: w oknie 5:00 - 9:00 (Pn-Pt) co 5 minut
     setInterval(function() {
       if (isMorningRushHour()) {
         updateAllCommutes();
       }
     }, 5 * 60 * 1000);
 
-    // 6. Radio RAM
+    // Radio RAM
     var aud = document.getElementById('audio');
     var rBtn = document.getElementById('radio-btn');
     var rSt = document.getElementById('r-status');
