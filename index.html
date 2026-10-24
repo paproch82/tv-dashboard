@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Smart TV Dashboard</title>
-  <!-- Biblioteka Leaflet do bezpośredniego rysowania mapy bez iframe -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -64,7 +63,7 @@
 
     .grid-3 {
       display: grid;
-      grid-template-columns: 1.1fr 1.2fr 0.7fr;
+      grid-template-columns: 1.1fr 1.25fr 0.65fr;
       gap: 8px;
     }
     .c-pad { padding: 8px 12px; }
@@ -110,7 +109,9 @@
     }
     .commute-name { font-size: 0.74rem; font-weight: 700; }
     .commute-sub { font-size: 0.58rem; color: #94a3b8; margin-top: 1px; }
-    .commute-time { font-size: 0.95rem; font-weight: 800; color: #38bdf8; text-align: right; }
+    .commute-right { text-align: right; }
+    .commute-time { font-size: 0.95rem; font-weight: 800; color: #38bdf8; }
+    .commute-delay { font-size: 0.58rem; color: #f87171; font-weight: 600; }
 
     .note-box {
       background: rgba(255, 255, 255, 0.04);
@@ -272,7 +273,7 @@
       font-weight: 800;
     }
 
-    /* Bezpośredni kontener mapy Leaflet */
+    /* Mapa Leaflet */
     #leaflet-map {
       width: 100%;
       height: 400px;
@@ -330,27 +331,33 @@
           </div>
         </div>
 
-        <!-- 2. Dojazdy -->
+        <!-- 2. Dojazdy TomTom Live -->
         <div class="card c-pad">
           <div class="card-title">
             <span>🚗 Dojazdy: Dom</span>
-            <span id="commute-status" style="color: #38bdf8;">Na żywo</span>
+            <span id="commute-status" style="color: #38bdf8;">Ładowanie TomTom...</span>
           </div>
           
           <div class="commute-row" id="row-tsusho" tabindex="0">
             <div>
               <div class="commute-name">Tsusho Łęg 🗺️</div>
-              <div class="commute-sub">ul. Japońska • przez WOW</div>
+              <div class="commute-sub" id="sub-tsusho">ul. Japońska • przez WOW</div>
             </div>
-            <div class="commute-time" id="time-tsusho">18 min</div>
+            <div class="commute-right">
+              <div class="commute-time" id="time-tsusho">-- min</div>
+              <div class="commute-delay" id="delay-tsusho"></div>
+            </div>
           </div>
 
           <div class="commute-row" id="row-koch" tabindex="0">
             <div>
               <div class="commute-name">Noir Handmade 🗺️</div>
-              <div class="commute-sub">Kochanowskiego 55a • przez Brucknera</div>
+              <div class="commute-sub" id="sub-koch">Kochanowskiego 55a • przez Brucknera</div>
             </div>
-            <div class="commute-time" id="time-koch">17 min</div>
+            <div class="commute-right">
+              <div class="commute-time" id="time-koch">-- min</div>
+              <div class="commute-delay" id="delay-koch"></div>
+            </div>
           </div>
         </div>
 
@@ -415,7 +422,7 @@
     </div>
   </div>
 
-  <!-- Modal 2: Czysta Mapa Leaflet -->
+  <!-- Modal 2: Mapa Trasy Leaflet -->
   <div class="modal-overlay" id="route-modal" onclick="closeModalOnBg(event, 'route-modal')">
     <div class="modal-content">
       <div class="modal-header">
@@ -423,7 +430,6 @@
         <button class="close-btn" onclick="closeModal('route-modal')">✕ Zamknij</button>
       </div>
 
-      <!-- Kontener mapy -->
       <div id="leaflet-map"></div>
 
       <div class="route-details">
@@ -436,6 +442,11 @@
   </div>
 
   <script>
+    // ------------------------------------------------------------------
+    // WPROWADZONY TWÓJ KLUCZ API TOMTOM:
+    var TOMTOM_KEY = 'KX5qRepXbYZUHX9vuKYyWzQxojJHmJNM';
+    // ------------------------------------------------------------------
+
     // 1. Zegar i Data
     function updateClock() {
       try {
@@ -521,7 +532,7 @@
       renderMonthCalendar();
     }
 
-    // 4. Dokładne koordynaty podane przez Ciebie
+    // 4. Dojazdy TomTom Live Routing
     var DOM_COORDS = [51.142935958072414, 17.190345703630012];
     var TSUSHO_COORDS = [51.03529091964734, 17.290916081534256];
     var NOIR_COORDS = [51.122948175552956, 17.07826835270448];
@@ -529,67 +540,83 @@
     var routesConfig = {
       tsusho: {
         title: 'Trasa: Dom ➔ Tsusho Łęg',
-        sub: 'Dom ➔ Wschodnia Obwodnica (WOW) ➔ Tsusho Łęg',
+        sub: 'ul. Japońska • przez WOW',
         destCoords: TSUSHO_COORDS,
-        destName: 'Tsusho Łęg',
-        baseMin: 18,
-        rushMin: 24,
-        timeElId: 'time-tsusho'
+        destName: 'Tsusho Łęg (ul. Japońska)',
+        timeElId: 'time-tsusho',
+        delayElId: 'delay-tsusho',
+        subElId: 'sub-tsusho',
+        lastData: null
       },
       koch: {
         title: 'Trasa: Dom ➔ Noir Handmade',
-        sub: 'Dom ➔ Sobieskiego ➔ Brucknera ➔ Noir (Kochanowskiego 55a)',
+        sub: 'Kochanowskiego 55a • przez Brucknera',
         destCoords: NOIR_COORDS,
-        destName: 'Noir Handmade',
-        baseMin: 17,
-        rushMin: 25,
-        timeElId: 'time-koch'
+        destName: 'Noir Handmade (Kochanowskiego 55a)',
+        timeElId: 'time-koch',
+        delayElId: 'delay-koch',
+        subElId: 'sub-koch',
+        lastData: null
       }
     };
 
-    function calculateRealCommuteTime(key) {
-      try {
-        var cfg = routesConfig[key];
-        var d = new Date();
-        var day = d.getDay(); // 0=Ndz, 1-5=Pn-Pt, 6=Sob
-        var hrs = d.getHours();
-        var mins = d.getMinutes();
-        var totalMinOfDay = hrs * 60 + mins;
+    function fetchTomTomLiveRoute(key, callback) {
+      var cfg = routesConfig[key];
+      var timeEl = document.getElementById(cfg.timeElId);
+      var delayEl = document.getElementById(cfg.delayElId);
+      var subEl = document.getElementById(cfg.subElId);
 
-        var calculatedTime = cfg.baseMin;
+      var url = 'https://api.tomtom.com/routing/1/calculateRoute/' +
+        DOM_COORDS[0] + ',' + DOM_COORDS[1] + ':' + cfg.destCoords[0] + ',' + cfg.destCoords[1] +
+        '/json?traffic=true&travelMode=car&key=' + TOMTOM_KEY;
 
-        // Pn-Pt w godzinach 5:00 - 9:00
-        if (day >= 1 && day <= 5 && hrs >= 5 && hrs < 9) {
-          if (totalMinOfDay >= 420 && totalMinOfDay <= 510) { // 7:00 - 8:30 (szczyt)
-            calculatedTime = cfg.rushMin;
-          } else {
-            calculatedTime = cfg.rushMin - 2;
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.routes && data.routes[0]) {
+            var summary = data.routes[0].summary;
+            var totalMin = Math.round(summary.travelTimeInSeconds / 60);
+            var delayMin = Math.round(summary.trafficDelayInSeconds / 60);
+            var distKm = (summary.lengthInMeters / 1000).toFixed(1);
+
+            timeEl.textContent = totalMin + ' min';
+            subEl.textContent = cfg.sub + ' • ' + distKm + ' km';
+
+            if (delayMin > 1) {
+              delayEl.textContent = '+' + delayMin + ' min w korku';
+            } else {
+              delayEl.textContent = '';
+            }
+
+            cfg.lastData = {
+              timeMin: totalMin,
+              delayMin: delayMin,
+              distKm: distKm,
+              points: data.routes[0].legs[0].points
+            };
+
+            if (callback) callback();
           }
-        }
-
-        var el = document.getElementById(cfg.timeElId);
-        if (el) el.textContent = calculatedTime + ' min';
-        cfg.lastCalculated = calculatedTime + ' min';
-      } catch (e) {}
+        })
+        .catch(function() {});
     }
 
     function updateAllCommutes() {
-      calculateRealCommuteTime('tsusho');
-      calculateRealCommuteTime('koch');
+      fetchTomTomLiveRoute('tsusho');
+      fetchTomTomLiveRoute('koch');
       var cur = new Date();
       var statusEl = document.getElementById('commute-status');
       if (statusEl) {
-        statusEl.textContent = 'Aktualne (' + String(cur.getHours()).padStart(2,'0') + ':' + String(cur.getMinutes()).padStart(2,'0') + ')';
+        statusEl.textContent = 'TomTom Live (' + String(cur.getHours()).padStart(2,'0') + ':' + String(cur.getMinutes()).padStart(2,'0') + ')';
       }
     }
 
-    // Obsługa bezpośredniej mapy Leaflet
+    // Leaflet: Mapa rysująca trasę wyznaczoną przez TomTom
     var leafletMapInstance = null;
     var leafletMarkersGroup = null;
 
-    function initOrUpdateMap(destKey) {
+    function renderTomTomMap(destKey) {
       var cfg = routesConfig[destKey];
-      var mapContainer = document.getElementById('leaflet-map');
 
       if (!leafletMapInstance) {
         leafletMapInstance = L.map('leaflet-map');
@@ -602,38 +629,47 @@
 
       leafletMarkersGroup.clearLayers();
 
-      // Pinezka 1: Dom
-      var homeMarker = L.marker(DOM_COORDS).bindPopup('<b>Dom</b>').addTo(leafletMarkersGroup);
-      // Pinezka 2: Cel
-      var destMarker = L.marker(cfg.destCoords).bindPopup('<b>' + cfg.destName + '</b>').addTo(leafletMarkersGroup);
+      L.marker(DOM_COORDS).bindPopup('<b>Dom</b>').addTo(leafletMarkersGroup);
+      L.marker(cfg.destCoords).bindPopup('<b>' + cfg.destName + '</b>').addTo(leafletMarkersGroup);
 
-      // Rysowanie bezpośredniej linii trasy między punktami
-      var routeLine = L.polyline([DOM_COORDS, cfg.destCoords], {
-        color: '#38bdf8',
-        weight: 4,
-        opacity: 0.85,
-        dashArray: '8, 8'
-      }).addTo(leafletMarkersGroup);
+      // Rysowanie geometrii dróg TomTom
+      if (cfg.lastData && cfg.lastData.points && cfg.lastData.points.length > 0) {
+        var latLngs = cfg.lastData.points.map(function(pt) { return [pt.latitude, pt.longitude]; });
+        L.polyline(latLngs, { color: '#38bdf8', weight: 4, opacity: 0.95 }).addTo(leafletMarkersGroup);
+      } else {
+        L.polyline([DOM_COORDS, cfg.destCoords], { color: '#38bdf8', weight: 4, opacity: 0.85, dashArray: '8, 8' }).addTo(leafletMarkersGroup);
+      }
 
-      // Automatyczne dopasowanie widoku do obu punktów
-      leafletMapInstance.fitBounds(leafletMarkersGroup.getBounds(), { padding: [50, 50] });
+      leafletMapInstance.fitBounds(leafletMarkersGroup.getBounds(), { padding: [40, 40] });
 
-      // Odświeżenie kafelków mapy po wyrenderowaniu okna
       setTimeout(function() {
         leafletMapInstance.invalidateSize();
-        leafletMapInstance.fitBounds(leafletMarkersGroup.getBounds(), { padding: [50, 50] });
+        leafletMapInstance.fitBounds(leafletMarkersGroup.getBounds(), { padding: [40, 40] });
       }, 250);
     }
 
     function handleCommuteClick(key) {
       var cfg = routesConfig[key];
-      calculateRealCommuteTime(key);
-      document.getElementById('route-modal-title').textContent = cfg.title;
-      document.getElementById('route-name-badge').textContent = 'Szacowany czas: ' + (cfg.lastCalculated || (cfg.baseMin + ' min'));
-      document.getElementById('route-sub-badge').textContent = cfg.sub;
 
+      document.getElementById('route-modal-title').textContent = cfg.title;
+      document.getElementById('route-sub-badge').textContent = cfg.sub;
+      document.getElementById('route-name-badge').textContent = 'Pobieranie aktualnej trasy z TomTom...';
       document.getElementById('route-modal').classList.add('open');
-      initOrUpdateMap(key);
+
+      // Natychmiastowe odświeżenie danych z TomTom na kliknięcie i odrysowanie mapy
+      fetchTomTomLiveRoute(key, function() {
+        var badgeText = cfg.lastData.timeMin + ' min (' + cfg.lastData.distKm + ' km)';
+        if (cfg.lastData.delayMin > 1) {
+          badgeText += ' • korek: +' + cfg.lastData.delayMin + ' min';
+        }
+        document.getElementById('route-name-badge').textContent = 'Aktualny czas dojazdu: ' + badgeText;
+        renderTomTomMap(key);
+      });
+
+      // Jeśli mamy już poprzednie punkty, renderujemy od razu bez czekania
+      if (cfg.lastData) {
+        renderTomTomMap(key);
+      }
     }
 
     document.getElementById('row-tsusho').addEventListener('click', function() { handleCommuteClick('tsusho'); });
@@ -651,8 +687,17 @@
       if (e.target.id === modalId) closeModal(modalId);
     }
 
+    // 1. Start od razu przy włączeniu telewizora/dashboardu
     updateAllCommutes();
-    setInterval(updateAllCommutes, 60 * 1000);
+
+    // 2. Odświeżanie codziennie (7 dni w tygodniu) w godzinach 5:00 - 9:00 co 5 minut
+    setInterval(function() {
+      var d = new Date();
+      var hrs = d.getHours();
+      if (hrs >= 5 && hrs < 9) {
+        updateAllCommutes();
+      }
+    }, 5 * 60 * 1000);
 
     // 5. Radio RAM
     var aud = document.getElementById('audio');
